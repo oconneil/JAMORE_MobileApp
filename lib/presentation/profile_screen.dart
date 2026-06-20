@@ -48,7 +48,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            context.isThai ? 'ณัฐวุฒิ จันทร์เพ็ญ' : 'Nattawut Chanphen',
+            state.employeeDisplayName(isThai: context.isThai),
             style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
           ),
           Text(

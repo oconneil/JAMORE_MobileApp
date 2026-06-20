@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login → GetUserCompany quick reference</title>
+  <style>
+    :root { --ink:#172033; --muted:#5d6678; --line:#dfe4ed; --accent:#3157d5; --paper:#fff; --wash:#f4f7fc; --code:#111827; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.65 system-ui,-apple-system,"Noto Sans Thai",sans-serif; }
+    main { max-width:900px; margin:40px auto; padding:38px; background:var(--paper); box-shadow:0 12px 40px #17203314; }
+    h1 { margin:0 0 8px; font-size:30px; line-height:1.2; }
+    h2 { margin-top:30px; font-size:19px; }
+    p { margin:8px 0; }
+    pre { overflow:auto; padding:16px; border-radius:8px; background:var(--code); color:#e5e7eb; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    :not(pre)>code { padding:.12em .35em; border-radius:4px; background:#edf1f8; }
+    .flow { padding:18px; border-left:4px solid var(--accent); background:var(--wash); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:13px; }
+    @media print { body { background:white; } main { margin:0; box-shadow:none; max-width:none; } }
+  </style>
+</head>
+<body><main>
+  <h1>Login → GetUserCompany</h1>
+  <p>เป้าหมาย: Login ให้ได้ token ก่อน แล้วค่อยเรียก endpoint ที่ต้องใช้ token แบบลำดับต่อกัน</p>
+
+  <h2>ลำดับ control flow</h2>
+  <div class="flow">await auth.login()<br>↓ AuthRepository เก็บ session/token<br>await company.getUserCompany(session.userName)<br>↓ ApiClient ขอ token จาก accessTokenProvider<br>Authorization: Bearer &lt;TokenUniverse&gt;<br>↓ ได้ company response<br>เก็บ state → เปลี่ยน route → notifyListeners()</div>
+
+  <h2>JavaScript ↔ Dart</h2>
+  <table>
+    <tr><th>JavaScript / TypeScript</th><th>Dart</th></tr>
+    <tr><td><code>Promise&lt;Company&gt;</code></td><td><code>Future&lt;Company&gt;</code></td></tr>
+    <tr><td><code>encodeURIComponent(name)</code></td><td><code>Uri.encodeComponent(name)</code></td></tr>
+    <tr><td><code>unknown</code></td><td><code>Object?</code></td></tr>
+    <tr><td><code>response as Company</code> (ไม่ validate runtime)</td><td><code>Company.fromJson(...)</code> (parse/validate runtime)</td></tr>
+  </table>
+
+  <h2>Repository request</h2>
+  <pre><code>Future&lt;Object?&gt; getUserCompany(String userName) {
+  final encoded = Uri.encodeComponent(userName.trim());
+  return _apiClient.get('Company/GetUserCompany/$encoded');
+}</code></pre>
+
+  <h2>จุดที่ต้องจำ</h2>
+  <p>เรียก company หลัง <code>await login()</code> คืนค่าแล้ว เพราะตอนนั้น <code>AuthRepository._session</code> ถูกตั้งและ <code>ApiClient</code> จึงแนบ Bearer token ได้</p>
+  <p>อย่าเปลี่ยนหน้า dashboard ก่อน company call ถ้าข้อมูล company เป็น prerequisite ของหน้า และอย่าเดา response model—หยุด debugger ดู decoded JSON ก่อน</p>
+</main></body>
+</html>

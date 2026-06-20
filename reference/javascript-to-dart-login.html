@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JavaScript → Dart: Login flow cheat sheet</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#5d6678; --line:#dfe4ed; --accent:#3457d5; --paper:#fff; --wash:#f4f7fc; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.6 system-ui,-apple-system,"Noto Sans Thai",sans-serif; }
+    main { max-width:900px; margin:40px auto; padding:36px; background:var(--paper); box-shadow:0 12px 40px #17203314; }
+    h1 { margin:0 0 8px; font-size:30px; line-height:1.2; }
+    h2 { margin-top:32px; font-size:19px; }
+    p { margin:8px 0; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:.05em; }
+    code { padding:.12em .35em; border-radius:4px; background:#edf1f8; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .flow { padding:18px; border-left:4px solid var(--accent); background:var(--wash); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .rule { color:var(--accent); font-weight:700; }
+    @media print { body { background:white; } main { margin:0; box-shadow:none; max-width:none; } }
+  </style>
+</head>
+<body><main>
+  <h1>JavaScript → Dart: Login flow</h1>
+  <p>ใช้แผ่นนี้เวลาอ่าน function: ดู <strong>input → await → output/error → side effect</strong></p>
+
+  <h2>คำแปล mental model</h2>
+  <table>
+    <thead><tr><th>JavaScript</th><th>Dart</th><th>ความหมาย</th></tr></thead>
+    <tbody>
+      <tr><td><code>Promise&lt;T&gt;</code></td><td><code>Future&lt;T&gt;</code></td><td>ค่าชนิด T ที่จะได้ภายหลัง</td></tr>
+      <tr><td><code>async function</code></td><td><code>Future&lt;T&gt; fn() async</code></td><td>function asynchronous</td></tr>
+      <tr><td><code>await promise</code></td><td><code>await future</code></td><td>หยุด function นี้ชั่วคราวจนได้ค่าหรือ error</td></tr>
+      <tr><td><code>throw / catch</code></td><td><code>throw / on ... catch</code></td><td>ส่งและดัก error</td></tr>
+      <tr><td><code>obj.key</code></td><td><code>map['key']</code> หรือ model field</td><td>อ่านข้อมูล response</td></tr>
+      <tr><td><code>fetch(...)</code></td><td><code>http.Client.send(...)</code></td><td>ส่ง HTTP request</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Flow จริงใน JAMORE</h2>
+  <div class="flow">ปุ่ม Login<br>↓ _login(): Future&lt;void&gt;<br>↓ AppState.login(): Future&lt;bool&gt;<br>↓ AuthRepository.login(): Future&lt;AuthSession&gt;<br>↓ ApiClient.post(): Future&lt;Object?&gt;<br>↓ HTTP response<br>↑ decoded JSON → session → true → เปลี่ยนหน้า</div>
+
+  <h2>กฎอ่าน function</h2>
+  <p><span class="rule">1.</span> วงชนิดคืนค่า เช่น <code>Future&lt;bool&gt;</code></p>
+  <p><span class="rule">2.</span> หาทุก <code>await</code> เพราะเป็นขอบเขตที่ control ออกไปทำงานชั้นถัดไป</p>
+  <p><span class="rule">3.</span> หา <code>return</code> และ <code>throw/catch</code> เพื่อรู้เส้นทางสำเร็จและล้มเหลว</p>
+  <p><span class="rule">4.</span> หาการแก้ state เช่น <code>location = '/dashboard'</code> และ <code>notifyListeners()</code></p>
+</main></body>
+</html>

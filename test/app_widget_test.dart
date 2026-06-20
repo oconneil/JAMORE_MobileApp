@@ -24,6 +24,7 @@ void main() {
       'nattawut.c',
     );
     await tester.enterText(find.byKey(const Key('passwordField')), 'jamore123');
+    await tester.enterText(find.byKey(const Key('companyField')), 'JAMORE-TH');
     await tester.tap(find.byKey(const Key('signInButton')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
@@ -31,6 +32,9 @@ void main() {
 
     expect(state.isAuthenticated, isTrue);
     expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('กชวรรณ เอนกลาภ'), findsOneWidget);
+    expect(find.text('หัวหน้าวิศวกรพัฒนาซอฟต์แวร์'), findsOneWidget);
+    expect(find.text('สวัสดีตอนเช้า'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -44,6 +48,7 @@ void main() {
       'nattawut.c',
     );
     await tester.enterText(find.byKey(const Key('passwordField')), 'wrong');
+    await tester.enterText(find.byKey(const Key('companyField')), 'JAMORE-TH');
     await tester.tap(find.byKey(const Key('signInButton')));
     await tester.pumpAndSettle();
 
@@ -80,17 +85,20 @@ void main() {
   testWidgets('language selection updates the full app', (tester) async {
     final state = await createTestState();
     await login(state);
-    state.navigate('/profile');
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(testApp(state));
-    await tester.pump();
+    await tester.pumpAndSettle();
+
+    state.navigate('/profile');
+    await tester.pumpAndSettle();
 
     await state.setLocale('en');
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Language'), findsOneWidget);
     expect(find.text('Sign out'), findsOneWidget);
+    expect(find.text('Kotchawan Aneklap'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

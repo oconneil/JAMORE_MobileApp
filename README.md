@@ -41,9 +41,29 @@ The default API base URL is `https://universe.jamourthailand.com/api/`. Override
 flutter run --dart-define=API_BASE_URL=https://staging.example.com/api/
 ```
 
-`ApiClient` provides JSON requests, a 20-second timeout, normalized relative paths, typed API errors, and an optional Bearer-token provider. No endpoint is called until a feature repository is connected.
+`ApiClient` provides JSON requests, a 20-second timeout, normalized relative paths, typed API errors, and an optional Bearer-token provider. The app uses two separate clients:
 
-Login now calls `POST Authenticate/Login` with `UserName`, `Password`, and optional `CompanyID`. The returned JWT is attached to subsequent API requests for the current app process. It is intentionally not written to the prototype JSON store; add a secure-storage adapter before enabling persistent production sessions.
+- `ApiClient`: Universe API at `API_BASE_URL`, authenticated with `TokenUniverse`.
+- `JamoreApiClient`: the selected customer's `JamoreAPIServer/api/`, authenticated with `TokenJamore`.
+
+The customer client is configured only after login and `Company/Get/{CompanyID}` both succeed. Customer feature repositories must depend on `JamoreApiClient`, not the Universe `ApiClient`:
+
+```dart
+class EmployeeRepository {
+  EmployeeRepository(this._apiClient);
+
+  final JamoreApiClient _apiClient;
+
+  Future<Object?> getEmployees() => _apiClient.get('Employee/Get');
+}
+```
+
+The login workflow then calls `User/GetUser/{UserName}` through
+`JamoreApiClient`, so the request uses the discovered customer server and
+`TokenJamore`. When that user has a non-empty `EmployeeID`, it also calls
+`Employee/Get/{EmployeeID}` before the dashboard opens.
+
+Login calls `POST AuthenticateMobile/Login` with `UserName`, `Password`, and optional `CompanyID`. The returned JWTs and customer server configuration are kept only for the current app process. They are intentionally not written to the prototype JSON store; add a secure-storage adapter before enabling persistent production sessions.
 
 ## Quality checks
 

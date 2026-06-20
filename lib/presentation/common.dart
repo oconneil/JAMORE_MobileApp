@@ -94,14 +94,14 @@ class JamoreCard extends StatelessWidget {
   final Color? color;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: padding,
-    decoration: BoxDecoration(
-      color: color ?? Colors.white,
+  Widget build(BuildContext context) => Material(
+    color: color ?? Colors.white,
+    shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(22),
-      border: Border.all(color: JamoreColors.line),
+      side: const BorderSide(color: JamoreColors.line),
     ),
-    child: child,
+    clipBehavior: Clip.antiAlias,
+    child: Padding(padding: padding, child: child),
   );
 }
 

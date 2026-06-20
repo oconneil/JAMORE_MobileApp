@@ -167,6 +167,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     label: context.l10n.companyId,
                     icon: Icons.apartment_rounded,
                     textCapitalization: TextCapitalization.characters,
+                    validator: (value) => value == null || value.trim().isEmpty
+                        ? context.l10n.requiredField
+                        : null,
                   ),
                   const SizedBox(height: 6),
                   Wrap(
@@ -176,8 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       _RememberToggle(
                         value: _remember,
-                        onChanged: (value) =>
-                            setState(() => _remember = value),
+                        onChanged: (value) => setState(() => _remember = value),
                         label: context.l10n.rememberMe,
                       ),
                       TextButton(
@@ -202,8 +204,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: FilledButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: JamoreColors.primaryDark,
-                        disabledBackgroundColor:
-                            Colors.white.withValues(alpha: .7),
+                        disabledBackgroundColor: Colors.white.withValues(
+                          alpha: .7,
+                        ),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -237,9 +240,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('${context.l10n.appName} ${context.l10n.hrm} · '),
+                          Text(
+                            '${context.l10n.appName} ${context.l10n.hrm} · ',
+                          ),
                           const AppVersionText(
-                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -253,7 +261,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     ),
   );
-
 }
 
 /// Centered JAMORE lockup: logo mark + wordmark + HRM tag.
@@ -380,8 +387,10 @@ class _GlassField extends StatelessWidget {
             suffixIcon: suffix,
             filled: true,
             fillColor: Colors.white.withValues(alpha: .92),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: border(Colors.transparent),
             enabledBorder: border(Colors.white.withValues(alpha: .5)),
             focusedBorder: border(Colors.white, 1.8),
@@ -465,10 +474,20 @@ class _AuroraBackground extends StatelessWidget {
     child: Stack(
       children: [
         _blob(-90, -60, 260, JamoreColors.primary.withValues(alpha: .16)),
-        _blob(null, -40, 240, const Color(0xFFFDE68A).withValues(alpha: .22),
-            right: -70),
-        _blob(null, -80, 320, JamoreColors.primary.withValues(alpha: .08),
-            bottom: -120),
+        _blob(
+          null,
+          -40,
+          240,
+          const Color(0xFFFDE68A).withValues(alpha: .22),
+          right: -70,
+        ),
+        _blob(
+          null,
+          -80,
+          320,
+          JamoreColors.primary.withValues(alpha: .08),
+          bottom: -120,
+        ),
       ],
     ),
   );
@@ -480,21 +499,20 @@ class _AuroraBackground extends StatelessWidget {
     Color color, {
     double? right,
     double? bottom,
-  }) =>
-      Positioned(
-        top: top,
-        left: left,
-        right: right,
-        bottom: bottom,
-        child: ImageFiltered(
-          imageFilter: ui.ImageFilter.blur(sigmaX: 70, sigmaY: 70),
-          child: Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-        ),
-      );
+  }) => Positioned(
+    top: top,
+    left: left,
+    right: right,
+    bottom: bottom,
+    child: ImageFiltered(
+      imageFilter: ui.ImageFilter.blur(sigmaX: 70, sigmaY: 70),
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      ),
+    ),
+  );
 }
 
 /// Center-screen alert shown when sign-in is rejected.

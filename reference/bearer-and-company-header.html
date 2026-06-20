@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Universe API headers quick reference</title>
+  <style>
+    :root { --ink:#172033; --muted:#5d6678; --line:#dfe4ed; --accent:#3157d5; --paper:#fff; --wash:#f4f7fc; --code:#111827; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.65 system-ui,-apple-system,"Noto Sans Thai",sans-serif; }
+    main { max-width:900px; margin:40px auto; padding:38px; background:var(--paper); box-shadow:0 12px 40px #17203314; }
+    h1 { margin:0 0 8px; font-size:30px; line-height:1.2; }
+    h2 { margin-top:30px; font-size:19px; }
+    pre { overflow:auto; padding:16px; border-radius:8px; background:var(--code); color:#e5e7eb; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    :not(pre)>code { padding:.12em .35em; border-radius:4px; background:#edf1f8; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:13px; }
+    a { color:var(--accent); }
+    @media print { body { background:white; } main { margin:0; box-shadow:none; max-width:none; } }
+  </style>
+</head>
+<body><main>
+  <h1>Universe API: Bearer + tenant header</h1>
+  <table>
+    <tr><th>Header</th><th>หน้าที่</th><th>แหล่งค่า</th></tr>
+    <tr><td><code>Authorization: Bearer ...</code></td><td>พิสูจน์ตัวตนกับ <code>[Authorize]</code></td><td><code>TokenUniverse</code></td></tr>
+    <tr><td><code>x-companyid: JCORP</code></td><td>เลือก tenant ให้ EF Core global query filter</td><td><code>CompanyID</code> จาก login</td></tr>
+  </table>
+
+  <h2>Flutter request</h2>
+  <pre><code>Future&lt;Object?&gt; getCompany(String companyId) {
+  final encoded = Uri.encodeComponent(companyId.trim());
+  return _apiClient.get(
+    'Company/Get/$encoded',
+    headers: {'x-companyid': companyId.trim()},
+  );
+}</code></pre>
+  <p><code>ApiClient</code> เติม Authorization จาก <code>accessTokenProvider</code> ให้อัตโนมัติ จึงไม่ควรส่ง token ซ้ำจาก feature repository</p>
+
+  <h2>ผลลัพธ์บน wire</h2>
+  <pre><code>GET /api/Company/Get/JCORP
+Authorization: Bearer &lt;TokenUniverse&gt;
+x-companyid: JCORP
+Accept: application/json</code></pre>
+
+  <h2>Primary source ในระบบจริง</h2>
+  <p><a href="../../../jamoreuniverse/MXHRM.Universe/Controllers/CompanyController.cs">CompanyController.cs</a> · <a href="../../../jamoreuniverse/MXHRM.Universe/ClientApp/src/app/services/global.service.ts">Angular GlobalService headers</a> · <a href="../../../jamoreuniverse/MXHRM.Universe/Data/ApplicationDbContext.cs">EF tenant query filter</a></p>
+</main></body>
+</html>

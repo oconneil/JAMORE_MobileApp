@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 2 — ยิง GetUserCompany ต่อจาก Login</title>
+  <style>
+    :root { --ink:#182033; --muted:#657087; --accent:#3157d5; --line:#dce2ed; --paper:#fff; --wash:#f5f7fb; --code:#111827; --warn:#fff7df; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.7 system-ui,-apple-system,"Noto Sans Thai",sans-serif; }
+    article { max-width:900px; margin:40px auto; padding:42px; background:var(--paper); box-shadow:0 16px 48px #18203312; }
+    h1 { margin:0; font-size:34px; line-height:1.2; }
+    .lede { color:var(--muted); font-size:18px; }
+    h2 { margin-top:34px; font-size:21px; }
+    pre { overflow:auto; padding:18px; border-radius:8px; background:var(--code); color:#e5e7eb; line-height:1.5; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    :not(pre)>code { padding:.12em .35em; border-radius:4px; background:#edf1f8; }
+    .card { padding:18px 20px; border:1px solid var(--line); border-radius:10px; }
+    .warn { padding:15px 18px; background:var(--warn); border-radius:8px; }
+    a { color:var(--accent); }
+    @media print { body { background:white; } article { margin:0; box-shadow:none; max-width:none; } }
+  </style>
+</head>
+<body><article>
+  <h1>ยิง GetUserCompany ต่อจาก Login</h1>
+  <p class="lede">เป้าหมาย: สร้าง sequential API flow ที่ request ที่สองได้รับ token จาก request แรก โดยยังไม่เดาโครงสร้าง response</p>
+
+  <h2>1. แยกหน้าที่ก่อน</h2>
+  <div class="card">
+    <p><strong>AuthRepository</strong> รู้วิธี Login และเก็บ AuthSession</p>
+    <p><strong>CompanyRepository</strong> รู้ endpoint ของ company</p>
+    <p><strong>AppState</strong> เป็นผู้เรียง workflow: login → company → dashboard</p>
+    <p><strong>ApiClient</strong> ทำ HTTP และแนบ Bearer token</p>
+  </div>
+
+  <h2>2. สร้าง CompanyRepository รอบแรก</h2>
+  <p>คืนค่าเป็น <code>Object?</code> ชั่วคราวเพื่อดู JSON จริงก่อน เทียบได้กับ <code>unknown</code> ใน TypeScript</p>
+  <pre><code>abstract interface class CompanyGateway {
+  Future&lt;Object?&gt; getUserCompany(String userName);
+}
+
+class CompanyRepository implements CompanyGateway {
+  CompanyRepository(this._apiClient);
+  final ApiClient _apiClient;
+
+  @override
+  Future&lt;Object?&gt; getUserCompany(String userName) {
+    final encoded = Uri.encodeComponent(userName.trim());
+    return _apiClient.get('Company/GetUserCompany/$encoded');
+  }
+}</code></pre>
+
+  <h2>3. ให้ AppState เรียงงาน</h2>
+  <pre><code>final session = await _authGateway.login(...);
+final companyResponse = await _companyGateway.getUserCompany(
+  session.userName,
+);
+
+// วาง breakpoint ตรงนี้ แล้ว inspect companyResponse
+userCompanyResponse = companyResponse;
+
+data = data.copyWith(sessionActive: true);
+location = '/dashboard';</code></pre>
+  <p>แต่ละ <code>await</code> คือจุดพักของ function นี้ งานสองชิ้นจึงเกิดตามลำดับ ไม่ได้ยิงพร้อมกัน</p>
+
+  <h2>4. ทำไม token ถูกแนบได้</h2>
+  <p>ก่อน <code>AuthRepository.login()</code> return มันตั้ง <code>_session = session</code> แล้ว เมื่อ company request วิ่งถึง <code>ApiClient._headers()</code> callback ใน <code>main.dart</code> จึงอ่าน token ล่าสุดและสร้าง <code>Authorization: Bearer ...</code></p>
+  <div class="warn"><strong>กับดัก:</strong> ถ้ายิง company ภายใน AuthRepository ก่อนตั้ง <code>_session</code> request ที่สองจะไม่มี Bearer token</div>
+
+  <h2>5. แบบฝึกลงมือ</h2>
+  <ol>
+    <li>สร้าง gateway/repository และ register dependency ใน <code>main.dart</code></li>
+    <li>เพิ่ม dependency และ field ชั่วคราวใน <code>AppState</code></li>
+    <li>วาง breakpoint หลัง company call และที่ <code>ApiClient._headers()</code></li>
+    <li>ทำนาย token/response ก่อนรัน แล้วจด shape ของ response จริง</li>
+    <li>ยังไม่สร้าง Company model จนกว่าจะเห็น JSON จริง</li>
+  </ol>
+
+  <h2>เกณฑ์ผ่านบทนี้</h2>
+  <p>Network inspector เห็น Login ก่อน GetUserCompany, request ที่สองมี Bearer token, debugger เห็น response และ route ยังไม่เปลี่ยนก่อนทั้งสอง request สำเร็จ</p>
+
+  <h2>อ่านต่อ</h2>
+  <p><a href="../reference/login-then-user-company.html">Quick reference: Login → GetUserCompany</a></p>
+  <p>แหล่งหลัก: <a href="https://dart.dev/language/async">Dart asynchronous programming</a> และ <a href="https://docs.flutter.dev/data-and-backend/networking">Flutter networking</a></p>
+  <p>เมื่อทำถึง breakpoint ให้ส่ง JSON ของ <code>companyResponse</code> หรือ error มา แล้วเราจะสร้าง typed model และ test ในบทถัดไป</p>
+</article></body>
+</html>

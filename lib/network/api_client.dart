@@ -7,19 +7,28 @@ import '../core/app_config.dart';
 import 'api_exception.dart';
 
 typedef AccessTokenProvider = FutureOr<String?> Function();
+typedef BaseUriProvider = Uri Function();
 
 class ApiClient {
   ApiClient({
     http.Client? client,
     Uri? baseUri,
+    BaseUriProvider? baseUriProvider,
     Duration? timeout,
     this.accessTokenProvider,
   }) : _client = client ?? http.Client(),
-       _baseUri = baseUri ?? AppConfig.apiBaseUri,
+       assert(
+         baseUri == null || baseUriProvider == null,
+         'Provide either baseUri or baseUriProvider, not both.',
+       ),
+       _baseUri =
+           baseUri ?? (baseUriProvider == null ? AppConfig.apiBaseUri : null),
+       _baseUriProvider = baseUriProvider,
        _timeout = timeout ?? AppConfig.apiTimeout;
 
   final http.Client _client;
-  final Uri _baseUri;
+  final Uri? _baseUri;
+  final BaseUriProvider? _baseUriProvider;
   final Duration _timeout;
   final AccessTokenProvider? accessTokenProvider;
 
@@ -95,7 +104,8 @@ class ApiClient {
 
   Uri _resolve(String path, Map<String, Object?>? query) {
     final relativePath = path.startsWith('/') ? path.substring(1) : path;
-    final uri = _baseUri.resolve(relativePath);
+    final baseUri = _baseUriProvider?.call() ?? _baseUri!;
+    final uri = baseUri.resolve(relativePath);
     if (query == null || query.isEmpty) return uri;
     return uri.replace(
       queryParameters: {

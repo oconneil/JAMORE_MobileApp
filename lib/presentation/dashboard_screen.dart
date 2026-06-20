@@ -15,6 +15,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final positionName = state.employeePositionName(isThai: context.isThai);
     return PageSurface(
       maxWidth: 980,
       child: Column(
@@ -43,17 +44,16 @@ class DashboardScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      context.l10n.goodMorning,
-                      style: const TextStyle(
-                        color: JamoreColors.muted,
-                        fontSize: 12,
+                    if (positionName != null)
+                      Text(
+                        positionName,
+                        style: const TextStyle(
+                          color: JamoreColors.muted,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
                     Text(
-                      context.isThai
-                          ? 'ณัฐวุฒิ จันทร์เพ็ญ'
-                          : 'Nattawut Chanphen',
+                      state.employeeDisplayName(isThai: context.isThai),
                       style: const TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w800,

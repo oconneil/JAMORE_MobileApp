@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 3 — Authorize Company/Get ด้วย TokenUniverse</title>
+  <style>
+    :root { --ink:#182033; --muted:#657087; --accent:#3157d5; --line:#dce2ed; --paper:#fff; --wash:#f5f7fb; --code:#111827; --warn:#fff7df; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.7 system-ui,-apple-system,"Noto Sans Thai",sans-serif; }
+    article { max-width:900px; margin:40px auto; padding:42px; background:var(--paper); box-shadow:0 16px 48px #18203312; }
+    h1 { margin:0; font-size:34px; line-height:1.2; }
+    .lede { color:var(--muted); font-size:18px; }
+    h2 { margin-top:34px; font-size:21px; }
+    pre { overflow:auto; padding:18px; border-radius:8px; background:var(--code); color:#e5e7eb; line-height:1.5; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    :not(pre)>code { padding:.12em .35em; border-radius:4px; background:#edf1f8; }
+    .card { padding:18px 20px; border:1px solid var(--line); border-radius:10px; }
+    .warn { padding:15px 18px; background:var(--warn); border-radius:8px; }
+    a { color:var(--accent); }
+    @media print { body { background:white; } article { margin:0; box-shadow:none; max-width:none; } }
+  </style>
+</head>
+<body><article>
+  <h1>Authorize Company/Get ด้วย TokenUniverse</h1>
+  <p class="lede">เป้าหมาย: เรียก protected endpoint โดยแยก “ผู้ใช้คือใคร” ออกจาก “กำลังอ่าน tenant ไหน”</p>
+
+  <h2>1. อ่าน backend contract จาก attribute</h2>
+  <div class="card">
+    <p><code>[Authorize]</code> อยู่บน <code>CompanyController</code> จึงครอบทุก action</p>
+    <p><code>GetUserCompany</code> มี <code>[AllowAnonymous]</code> จึงไม่บังคับ token</p>
+    <p><code>Get/{CompanyID}</code> ไม่มี <code>[AllowAnonymous]</code> จึงต้องผ่าน JWT Bearer validation</p>
+  </div>
+
+  <h2>2. TokenUniverse ถูกต่อเข้าระบบอยู่แล้ว</h2>
+  <p><code>AuthRepository.login</code> อ่าน <code>tokenUniverse</code> มาเก็บใน <code>AuthSession.token</code> จากนั้น <code>ApiClient._headers</code> อ่าน token ผ่าน callback และเติม <code>Authorization: Bearer ...</code> ทุก request</p>
+  <pre><code>// Feature repository ไม่ต้องรู้จัก token
+return _apiClient.get('Company/Get/$encodedCompanyId');</code></pre>
+
+  <h2>3. แต่ endpoint นี้ต้องมี tenant header ด้วย</h2>
+  <p>Angular เดิมส่งทั้ง Authorization และ <code>x-companyid</code> ส่วน backend ใช้ <code>x-companyid</code> ใน EF Core global query filter ดังนั้น Flutter ต้องรักษาพฤติกรรมนี้</p>
+  <pre><code>Future&lt;Object?&gt; getCompany(String companyId) {
+  final normalized = companyId.trim();
+  final encoded = Uri.encodeComponent(normalized);
+
+  return _apiClient.get(
+    'Company/Get/$encoded',
+    headers: {'x-companyid': normalized},
+  );
+}</code></pre>
+  <div class="warn"><strong>อย่าใส่ Authorization ที่นี่:</strong> ถ้าแต่ละ repository จัดการ token เอง โค้ดจะซ้ำและ token refresh/logout จะดูแลยาก ให้ network layer เป็นเจ้าของ authentication header</div>
+
+  <h2>4. เรียกหลัง login</h2>
+  <pre><code>final session = await _authGateway.login(...);
+final companyId = session.companyId?.toString().trim();
+
+if (companyId == null || companyId.isEmpty) {
+  throw const AuthException('Company ID is missing.');
+}
+
+final companyResponse = await _companyGateway.getCompany(companyId);
+// breakpoint: inspect companyResponse</code></pre>
+
+  <h2>5. แบบฝึกตรวจของจริง</h2>
+  <ol>
+    <li>เพิ่ม <code>getCompany</code> ใน interface, implementation และ fake test gateway</li>
+    <li>เรียกด้วย <code>session.companyId</code> หลัง login</li>
+    <li>วาง breakpoint ที่ <code>ApiClient._headers</code></li>
+    <li>ยืนยันว่ามีทั้ง <code>Authorization</code> และ <code>x-companyid</code></li>
+    <li>ทดสอบลบ Authorization ชั่วคราว ควรได้ 401 แล้วคืนโค้ดกลับ</li>
+  </ol>
+
+  <h2>เกณฑ์ผ่านบทนี้</h2>
+  <p>request ไป <code>/api/Company/Get/JCORP</code>, Bearer token ตรงกับ TokenUniverse, tenant header เป็น JCORP และ response มี Result.Value เป็น Company</p>
+
+  <h2>อ่านต่อ</h2>
+  <p><a href="../reference/bearer-and-company-header.html">Quick reference: Bearer + tenant header</a></p>
+  <p>Primary source: <a href="../../../jamoreuniverse/MXHRM.Universe/Controllers/CompanyController.cs">CompanyController</a>, <a href="../../../jamoreuniverse/MXHRM.Universe/Startup.cs">JWT configuration</a>, และ <a href="../../../jamoreuniverse/MXHRM.Universe/Data/ApplicationDbContext.cs">tenant query filter</a></p>
+  <p>เมื่อได้ response แล้ว ส่ง JSON เฉพาะโครงสร้างมาได้—ไม่ต้องส่ง token—เพื่อทำ typed Company model ในบทต่อไป</p>
+</article></body>
+</html>

@@ -5,18 +5,41 @@ import 'package:flutter/material.dart';
 import '../auth/auth_models.dart';
 import '../auth/auth_repository.dart';
 import '../data/app_repository.dart';
+import '../company/company_repository.dart';
 import '../data/mock_data.dart';
 import '../data/models.dart';
+import '../employee/employee_repository.dart';
+import '../employee/employee_models.dart';
 import '../network/api_exception.dart';
+import '../network/jamore_api_client.dart';
+import '../user/user_models.dart';
+import '../user/user_repository.dart';
 
 class AppState extends ChangeNotifier {
-  AppState(this._repository, this._authGateway, {DateTime Function()? clock})
-    : _clock = clock ?? DateTime.now;
+  AppState(
+    this._repository,
+    this._authGateway,
+    this._companyGateway,
+    this._userGateway,
+    this._employeeGateway, {
+    JamoreApiConnection? jamoreApiConnection,
+    DateTime Function()? clock,
+  }) : _jamoreApiConnection = jamoreApiConnection ?? JamoreApiConnection(),
+       _clock = clock ?? DateTime.now;
 
   final AppRepository _repository;
   final AuthGateway _authGateway;
+  final CompanyGateway _companyGateway;
+  final UserGateway _userGateway;
+  final EmployeeGateway _employeeGateway;
+  final JamoreApiConnection _jamoreApiConnection;
   final DateTime Function() _clock;
 
+  Object? userCompanyResponse;
+  Object? currentUserResponse;
+  UserDetails? currentUser;
+  Object? currentEmployeeResponse;
+  EmployeeDetails? currentEmployee;
   late DemoData data;
   bool initialized = false;
   String location = '/login';
@@ -24,6 +47,18 @@ class AppState extends ChangeNotifier {
 
   Locale get locale => Locale(data.localeCode);
   bool get isAuthenticated => data.sessionActive;
+
+  String employeeDisplayName({required bool isThai}) {
+    final employeeName = currentEmployee?.displayName(isThai: isThai);
+    if (employeeName != null) return employeeName;
+    final user = currentUser;
+    final preferred = isThai ? user?.userNameThai : user?.userNameEng;
+    final fallback = isThai ? user?.userNameEng : user?.userNameThai;
+    return preferred ?? fallback ?? user?.userName ?? '';
+  }
+
+  String? employeePositionName({required bool isThai}) =>
+      currentEmployee?.displayPositionName(isThai: isThai);
 
   Future<void> initialize() async {
     data = await _repository.load();
@@ -43,6 +78,12 @@ class AppState extends ChangeNotifier {
     required bool rememberMe,
   }) async {
     loginError = null;
+    _jamoreApiConnection.clear();
+    userCompanyResponse = null;
+    currentUserResponse = null;
+    currentUser = null;
+    currentEmployeeResponse = null;
+    currentEmployee = null;
     try {
       final session = await _authGateway.login(
         userName: username,
@@ -50,7 +91,28 @@ class AppState extends ChangeNotifier {
         companyId: companyId,
         rememberMe: rememberMe,
       );
-      final language = _languageCode(session.defaultLanguage);
+      final sessionCompanyId = session.companyId?.toString().trim();
+      if (sessionCompanyId == null || sessionCompanyId.isEmpty) {
+        throw const AuthException('Company ID is missing.');
+      }
+      final company = await _companyGateway.getCompany(sessionCompanyId);
+      _jamoreApiConnection.configure(
+        apiServer: company.jamoreApiServer,
+        accessToken: session.jamoreToken,
+      );
+      userCompanyResponse = company.raw;
+      final user = await _userGateway.getUser(session.userName);
+      currentUser = user;
+      currentUserResponse = user.raw;
+      final employeeId = user.employeeId;
+      if (employeeId != null) {
+        final employee = await _employeeGateway.getEmployee(employeeId);
+        currentEmployee = employee;
+        currentEmployeeResponse = employee.raw;
+      }
+      final language = _languageCode(
+        user.defaultLanguage ?? session.defaultLanguage,
+      );
       data = data.copyWith(
         localeCode: language ?? data.localeCode,
         hasLoggedIn: true,
@@ -85,6 +147,12 @@ class AppState extends ChangeNotifier {
 
   Future<void> logout() async {
     await _authGateway.logout();
+    _jamoreApiConnection.clear();
+    userCompanyResponse = null;
+    currentUserResponse = null;
+    currentUser = null;
+    currentEmployeeResponse = null;
+    currentEmployee = null;
     data = data.copyWith(sessionActive: false);
     location = '/login';
     await _persist();

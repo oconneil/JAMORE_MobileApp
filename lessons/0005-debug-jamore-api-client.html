@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 5 — Debug JamoreApiClient ตาม request จริง</title>
+  <style>
+    :root { --ink:#182033; --muted:#657087; --accent:#3157d5; --line:#dce2ed; --paper:#fff; --wash:#f5f7fb; --code:#111827; --warn:#fff7df; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.7 system-ui,-apple-system,"Noto Sans Thai",sans-serif; }
+    article { max-width:900px; margin:40px auto; padding:42px; background:var(--paper); box-shadow:0 16px 48px #18203312; }
+    h1 { margin:0; font-size:34px; line-height:1.2; }
+    .lede { color:var(--muted); font-size:18px; }
+    h2 { margin-top:34px; font-size:21px; }
+    pre { overflow:auto; padding:18px; border-radius:8px; background:var(--code); color:#e5e7eb; line-height:1.5; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    :not(pre)>code { padding:.12em .35em; border-radius:4px; background:#edf1f8; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:13px; }
+    .warn { padding:15px 18px; background:var(--warn); border-radius:8px; }
+    a { color:var(--accent); }
+    @media print { body { background:white; } article { margin:0; box-shadow:none; max-width:none; } }
+  </style>
+</head>
+<body><article>
+  <h1>Debug JamoreApiClient ตาม request จริง</h1>
+  <p class="lede">เป้าหมาย: หยุด execution ก่อนส่ง request แล้วตอบให้ได้ว่า URL, token และ response มาจากไหน</p>
+
+  <h2>สิ่งที่ต้องรู้ก่อน</h2>
+  <p><code>JamoreApiClient extends ApiClient</code> และไม่ได้ override <code>request()</code> ดังนั้น request ของ customer จะเข้า <code>ApiClient.request()</code> เหมือนกัน ต่างกันตรง callback ที่คืน customer base URL และ TokenJamore</p>
+
+  <h2>Breakpoint map</h2>
+  <table>
+    <tr><th>ลำดับ</th><th>ไฟล์/บรรทัด</th><th>ค่าที่ตรวจ</th></tr>
+    <tr><td>1</td><td><code>app_state.dart:74</code></td><td><code>company.jamoreApiServer</code>, <code>session.jamoreToken.isNotEmpty</code></td></tr>
+    <tr><td>2</td><td><code>jamore_api_client.dart:47</code></td><td><code>server</code>, <code>server.resolve('api/')</code></td></tr>
+    <tr><td>3</td><td><code>user_repository.dart:16</code></td><td><code>encodedUserName</code>, endpoint path</td></tr>
+    <tr><td>4</td><td><code>api_client.dart:78</code></td><td><code>this.runtimeType</code>, <code>uri</code>, <code>requestHeaders</code></td></tr>
+    <tr><td>5</td><td><code>api_client.dart:85</code></td><td><code>response.statusCode</code>, <code>response.body</code>, <code>decoded</code></td></tr>
+  </table>
+
+  <h2>ค่าที่ควรเห็นก่อนส่ง</h2>
+  <pre><code>this.runtimeType == JamoreApiClient
+uri == https://CUSTOMER/api/User/GetUser/USERNAME
+requestHeaders['Authorization'] == 'Bearer &lt;TokenJamore&gt;'</code></pre>
+  <p class="warn"><strong>อย่าคัดลอก token เต็มลง log หรือ screenshot:</strong> ตรวจเพียงว่าไม่ว่าง หรือดู prefix สั้น ๆ ใน Variables panel</p>
+
+  <h2>วิธีเดินทีละชั้น</h2>
+  <ol>
+    <li>Run app ด้วย Debug mode แล้ว login</li>
+    <li>เมื่อหยุดที่ <code>app_state.dart:74</code> ใช้ Step over จน configure เสร็จ</li>
+    <li>Resume ไป <code>UserRepository</code> แล้ว Step into ที่ <code>_apiClient.get(...)</code></li>
+    <li>ที่ <code>ApiClient.request</code> ตรวจ URL/header ก่อนบรรทัด <code>_client.send</code></li>
+    <li>Step over <code>await</code> แล้วตรวจ status/body หลัง response กลับ</li>
+  </ol>
+
+  <h2>แบบฝึก retrieval</h2>
+  <p>ก่อนกด Resume ให้ตอบจากความจำ: breakpoint ใดพิสูจน์ base URL, breakpoint ใดพิสูจน์ Bearer token และ breakpointใดพิสูจน์ HTTP status?</p>
+
+  <h2>อ่านต่อ</h2>
+  <p><a href="../reference/jamore-api-debug-breakpoints.html">Quick reference: Jamore API breakpoint map</a></p>
+  <p>Primary source: <a href="https://docs.flutter.dev/tools/devtools/debugger">Flutter DevTools — breakpoints, call stack, variables และ stepping</a></p>
+  <p>ถ้าหยุดแล้วค่าไม่ตรง ส่งเฉพาะ URL, status code และชื่อ header มาได้ โดยลบ token value ออก</p>
+</article></body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jamore API debug breakpoints</title>
+  <style>
+    :root { --ink:#172033; --muted:#5d6678; --line:#dfe4ed; --accent:#3157d5; --paper:#fff; --wash:#f4f7fc; --code:#111827; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.65 system-ui,-apple-system,"Noto Sans Thai",sans-serif; }
+    main { max-width:900px; margin:40px auto; padding:38px; background:var(--paper); box-shadow:0 12px 40px #17203314; }
+    h1 { margin:0 0 8px; font-size:30px; line-height:1.2; }
+    pre { overflow:auto; padding:16px; border-radius:8px; background:var(--code); color:#e5e7eb; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    :not(pre)>code { padding:.12em .35em; border-radius:4px; background:#edf1f8; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:13px; }
+    a { color:var(--accent); }
+    @media print { body { background:white; } main { margin:0; box-shadow:none; max-width:none; } }
+  </style>
+</head>
+<body><main>
+  <h1>Jamore API breakpoint map</h1>
+  <table>
+    <tr><th>ต้องการพิสูจน์</th><th>หยุดที่</th><th>ตรวจค่า</th></tr>
+    <tr><td>Company config</td><td><code>app_state.dart:74</code></td><td>server + TokenJamore ไม่ว่าง</td></tr>
+    <tr><td>Final base URL</td><td><code>jamore_api_client.dart:47</code></td><td><code>server.resolve('api/')</code></td></tr>
+    <tr><td>Endpoint path</td><td><code>user_repository.dart:16</code></td><td><code>encodedUserName</code></td></tr>
+    <tr><td>Final wire request</td><td><code>api_client.dart:78</code></td><td><code>uri</code> + <code>requestHeaders</code></td></tr>
+    <tr><td>Server response</td><td><code>api_client.dart:85</code></td><td>status + body + decoded</td></tr>
+    <tr><td>API error</td><td><code>api_client.dart:86</code></td><td>non-2xx status</td></tr>
+  </table>
+
+  <pre><code>Call stack:
+AppState.login
+  → UserRepository.getUser
+    → ApiClient.get
+      → ApiClient.request
+        → http.Client.send</code></pre>
+
+  <p>ถ้า breakpoint ใน <code>ApiClient</code> หยุดทั้ง Universe และ Jamore requests ให้ตรวจ <code>this.runtimeType</code>; รอบ customer ต้องเป็น <code>JamoreApiClient</code></p>
+  <p><a href="https://docs.flutter.dev/tools/devtools/debugger">Flutter debugger official guide</a></p>
+</main></body>
+</html>

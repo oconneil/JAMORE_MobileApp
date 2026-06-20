@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 4 — แยกสอง test failures ออกจากกัน</title>
+  <style>
+    :root { --ink:#182033; --muted:#657087; --accent:#3157d5; --line:#dce2ed; --paper:#fff; --wash:#f5f7fb; --code:#111827; --warn:#fff7df; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.7 system-ui,-apple-system,"Noto Sans Thai",sans-serif; }
+    article { max-width:900px; margin:40px auto; padding:42px; background:var(--paper); box-shadow:0 16px 48px #18203312; }
+    h1 { margin:0; font-size:34px; line-height:1.2; }
+    .lede { color:var(--muted); font-size:18px; }
+    h2 { margin-top:34px; font-size:21px; }
+    pre { overflow:auto; padding:18px; border-radius:8px; background:var(--code); color:#e5e7eb; line-height:1.5; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    :not(pre)>code { padding:.12em .35em; border-radius:4px; background:#edf1f8; }
+    .card { padding:18px 20px; border:1px solid var(--line); border-radius:10px; }
+    a { color:var(--accent); }
+    @media print { body { background:white; } article { margin:0; box-shadow:none; max-width:none; } }
+  </style>
+</head>
+<body><article>
+  <h1>แยกสอง widget-test failures</h1>
+  <p class="lede">เป้าหมาย: อ่าน log จาก fail path ไม่ใช่เดาวิธีแก้จากข้อความสุดท้าย</p>
+
+  <h2>Failure A: Login ได้ false</h2>
+  <div class="card"><code>test input ไม่มี CompanyID → FakeAuthSession.companyId == '' → AppState guard โยน AuthException → login คืน false</code></div>
+  <p>แก้ fixture ให้เป็น valid login โดยกรอก <code>companyField</code> และเพิ่ม validator ใน UI เพราะ backend DTO กำหนด CompanyID เป็น required</p>
+
+  <h2>Failure B: ListTile assertion</h2>
+  <div class="card"><code>Material ancestor → JamoreCard DecoratedBox สีขาว → ListTile</code></div>
+  <p>ListTile วาด ink ลง Material แต่ DecoratedBox สีขาวอยู่ทับ จึงมองไม่เห็น splash แก้ shared abstraction ที่ <code>JamoreCard</code> ให้ตัว card เป็น <code>Material</code> ที่มี shape/color แล้วใส่ Padding ภายใน</p>
+
+  <h2>Feedback loop</h2>
+  <ol>
+    <li>แก้ Login fixture แล้วรันเฉพาะ Login test</li>
+    <li>แก้ JamoreCard แล้วรันเฉพาะ language test</li>
+    <li>เมื่อสอง test ผ่าน ค่อยรัน suite ทั้งหมด</li>
+  </ol>
+  <p><a href="../reference/flutter-test-failure-triage.html">Quick reference: Flutter test failure triage</a></p>
+  <p>Primary source: Flutter framework <code>packages/flutter/lib/src/material/list_tile.dart</code> และ Universe <code>LoginMobileModel.cs</code></p>
+  <p>แก้แล้วส่งผล targeted tests มาได้ ถ้ายัง fail เราจะใช้ผลรอบใหม่เป็น breadcrumb ต่อทันที</p>
+</article></body>
+</html>

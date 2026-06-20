@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Flutter test failure triage</title>
+  <style>
+    :root { --ink:#172033; --muted:#5d6678; --line:#dfe4ed; --accent:#3157d5; --paper:#fff; --wash:#f4f7fc; --code:#111827; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.65 system-ui,-apple-system,"Noto Sans Thai",sans-serif; }
+    main { max-width:900px; margin:40px auto; padding:38px; background:var(--paper); box-shadow:0 12px 40px #17203314; }
+    h1 { margin:0 0 8px; font-size:30px; line-height:1.2; }
+    h2 { margin-top:30px; font-size:19px; }
+    pre { overflow:auto; padding:16px; border-radius:8px; background:var(--code); color:#e5e7eb; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    :not(pre)>code { padding:.12em .35em; border-radius:4px; background:#edf1f8; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font-size:13px; }
+    a { color:var(--accent); }
+    @media print { body { background:white; } main { margin:0; box-shadow:none; max-width:none; } }
+  </style>
+</head>
+<body><main>
+  <h1>Flutter test failure triage</h1>
+  <table>
+    <tr><th>อาการ</th><th>ถามก่อน</th><th>ตัวอย่างรอบนี้</th></tr>
+    <tr><td>Expected/Actual ไม่ตรง</td><td>input fixture ยังครบตาม contract ใหม่หรือไม่</td><td>test ไม่กรอก Company ID</td></tr>
+    <tr><td>Framework assertion</td><td>widget tree ผิด invariant ใด</td><td>DecoratedBox คั่น ListTile กับ Material</td></tr>
+    <tr><td>หลาย exception ซ้ำ</td><td>เป็นหลาย root cause หรือ widget เดิมหลาย instance/rebuild</td><td>ListTile หลายตัวถูกรายงานซ้ำ</td></tr>
+  </table>
+
+  <h2>คำสั่ง feedback loop</h2>
+  <pre><code>flutter test test/app_widget_test.dart \
+  --plain-name 'login validates credentials and opens dashboard'
+
+flutter test test/app_widget_test.dart \
+  --plain-name 'language selection updates the full app'
+
+flutter test</code></pre>
+  <p>แก้ทีละ root cause แล้วรัน test แคบก่อน สุดท้ายจึงรันทั้ง suite</p>
+</main></body>
+</html>

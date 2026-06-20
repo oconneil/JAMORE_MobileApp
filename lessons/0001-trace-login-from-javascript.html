@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 1 — Trace Login แบบ JavaScript developer</title>
+  <style>
+    :root { --ink:#182033; --muted:#657087; --accent:#3157d5; --line:#dce2ed; --paper:#fff; --wash:#f5f7fb; --code:#111827; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.7 system-ui,-apple-system,"Noto Sans Thai",sans-serif; }
+    article { max-width:860px; margin:40px auto; padding:42px; background:var(--paper); box-shadow:0 16px 48px #18203312; }
+    h1 { margin:0; font-size:34px; line-height:1.2; }
+    .lede { color:var(--muted); font-size:18px; }
+    h2 { margin-top:34px; font-size:21px; }
+    pre { overflow:auto; padding:18px; border-radius:8px; background:var(--code); color:#e5e7eb; line-height:1.5; }
+    code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+    :not(pre)>code { padding:.12em .35em; border-radius:4px; background:#edf1f8; }
+    .card { padding:18px 20px; border:1px solid var(--line); border-radius:10px; }
+    a { color:var(--accent); }
+    .answer { margin-top:8px; color:var(--muted); }
+    @media print { body { background:white; } article { margin:0; box-shadow:none; max-width:none; } }
+  </style>
+</head>
+<body><article>
+  <h1>Trace Login แบบ JavaScript developer</h1>
+  <p class="lede">เป้าหมาย: มอง Login เป็น promise chain ที่แยกความรับผิดชอบเป็น 4 ชั้น และตามค่ากลับขึ้นมาได้</p>
+
+  <h2>1. เริ่มจากสิ่งที่คุ้นเคย</h2>
+  <p>Dart <code>Future&lt;T&gt;</code> ทำหน้าที่เดียวกับ JavaScript <code>Promise&lt;T&gt;</code> และ <code>await</code> ให้ค่าที่สำเร็จหรือโยน error เข้าสู่ <code>catch</code> เช่นเดียวกัน</p>
+  <pre><code>// JavaScript
+async function login() {
+  const response = await api.post('/login');
+  return response;
+}
+
+// Dart
+Future&lt;Object?&gt; login() async {
+  final response = await api.post('/login');
+  return response;
+}</code></pre>
+
+  <h2>2. อ่าน signature ก่อน body</h2>
+  <p><code>Future&lt;bool&gt; login(...)</code> แปลว่า “ตอนนี้ได้ Future กลับมา และภายหลังจะจบด้วย bool หรือ error” ชนิดที่อยู่ใน <code>&lt;...&gt;</code> คือค่าหลัง <code>await</code></p>
+
+  <h2>3. Login จริงเป็น call chain</h2>
+  <div class="card">
+    <p><strong>UI:</strong> รับ event จากปุ่มและแสดง loading/error</p>
+    <p><strong>State:</strong> ตัดสินว่า login สำเร็จไหม และเปลี่ยนหน้า</p>
+    <p><strong>Repository:</strong> แปลง JSON ให้เป็น <code>AuthSession</code></p>
+    <p><strong>API client:</strong> ส่ง HTTP, ตรวจ status, decode JSON</p>
+  </div>
+  <p>ใน debugger ให้เริ่มที่ callback ของปุ่ม แล้วกด <strong>Step Into</strong> ตรงแต่ละ <code>await</code> เมื่อ response กลับมาให้กด <strong>Step Over</strong> เพื่อดูว่าค่าถูกแปลงอย่างไร จากนั้นดู <strong>Call Stack</strong> เพื่อรู้ว่ามาจากชั้นใด</p>
+
+  <h2>4. แบบฝึก 2 นาที</h2>
+  <p>ก่อนรัน ให้ทำนายค่าหลังแต่ละจุด:</p>
+  <ol>
+    <li><code>ApiClient.request</code> คืนค่าอะไรเมื่อ status 200?</li>
+    <li><code>AuthRepository.login</code> คืนค่าอะไรเมื่อมี token?</li>
+    <li><code>AppState.login</code> คืนค่าอะไร และ state ไหนเปลี่ยน?</li>
+    <li>ถ้า status 401 control จะวิ่งเข้า catch จุดไหน?</li>
+  </ol>
+  <p class="answer">จากนั้นวาง breakpoint แล้วพิสูจน์คำตอบ การทำนายก่อนดูคือส่วนที่ทำให้ mental model แม่นขึ้น</p>
+
+  <h2>อ่านต่อ</h2>
+  <p><a href="../reference/javascript-to-dart-login.html">Cheat sheet: JavaScript → Dart Login</a></p>
+  <p>แหล่งหลัก: <a href="https://dart.dev/language/async">Dart asynchronous programming</a> และ <a href="https://docs.flutter.dev/tools/devtools/debugger">Flutter debugger</a></p>
+  <p>ถ้าจุดใดไม่ชัด ให้ถาม agent โดยอ้างชื่อ function หรือบรรทัดนั้นได้ทันที</p>
+</article></body>
+</html>

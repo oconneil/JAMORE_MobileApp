@@ -67,6 +67,10 @@ class AuthRepository implements AuthGateway {
     final token = (_field(value, 'tokenUniverse') ?? _field(value, 'token'))
         ?.toString();
     if (token == null || token.isEmpty) throw AuthException(message);
+    final jamoreToken = _field(value, 'tokenJamore')?.toString();
+    if (jamoreToken == null || jamoreToken.isEmpty) {
+      throw const AuthException('TokenJamore is missing.');
+    }
 
     // This endpoint does not return an explicit expiration; derive it from the
     // JWT `exp` claim, falling back to the backend default of one day.
@@ -78,6 +82,7 @@ class AuthRepository implements AuthGateway {
       userName: _field(value, 'userName')?.toString() ?? userName.trim(),
       companyId: _field(value, 'companyID'),
       token: token,
+      jamoreToken: jamoreToken,
       expiration: expiration,
       firstLogin: _bool(_field(value, 'firstLogin')),
       passwordExpired: _bool(_field(value, 'passwordExpired')),

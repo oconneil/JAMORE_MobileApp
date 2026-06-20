@@ -50,6 +50,7 @@ void main() {
       'CompanyID': 'JAMORE-TH',
     });
     expect(session.token, tokenUniverse);
+    expect(session.jamoreToken, 'jamore-token');
     expect(session.companyId, 7);
     expect(session.defaultLanguage, 'en');
     expect(session.isAdmin, isTrue);

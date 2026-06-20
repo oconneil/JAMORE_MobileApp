@@ -22,12 +22,49 @@ void main() {
           isFalse,
         );
         expect(await login(state), isTrue);
+        expect(state.currentUser?.employeeId, 'E2022-084');
+        expect(state.currentEmployee?.employeeId, 'E2022-084');
+        expect(state.currentEmployeeResponse, isNotNull);
+        expect(state.employeeDisplayName(isThai: true), 'กชวรรณ เอนกลาภ');
+        expect(state.employeeDisplayName(isThai: false), 'Kotchawan Aneklap');
+        expect(
+          state.employeePositionName(isThai: true),
+          'หัวหน้าวิศวกรพัฒนาซอฟต์แวร์',
+        );
+        expect(
+          state.employeePositionName(isThai: false),
+          'Software Development Engineer Leader',
+        );
 
         final restored = await createTestState(store: store, authGateway: auth);
         expect(restored.isAuthenticated, isTrue);
         expect(restored.location, '/dashboard');
       },
     );
+
+    test('skips employee API when user has no EmployeeID', () async {
+      final employeeGateway = FakeEmployeeGateway();
+      final state = await createTestState(
+        userGateway: FakeUserGateway(employeeId: null),
+        employeeGateway: employeeGateway,
+      );
+
+      expect(await login(state), isTrue);
+      expect(employeeGateway.requestedEmployeeId, isNull);
+      expect(state.currentEmployeeResponse, isNull);
+      expect(state.currentEmployee, isNull);
+      expect(state.location, '/dashboard');
+    });
+
+    test('hides position when employee PositionID is missing', () async {
+      final state = await createTestState(
+        employeeGateway: FakeEmployeeGateway(positionId: null),
+      );
+
+      expect(await login(state), isTrue);
+      expect(state.employeePositionName(isThai: true), isNull);
+      expect(state.employeePositionName(isThai: false), isNull);
+    });
 
     test('counts weekdays and supports half day', () async {
       final state = await createTestState();
