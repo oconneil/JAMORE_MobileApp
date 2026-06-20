@@ -1,0 +1,54 @@
+name: jamore
+description: JAMORE cross-platform HRM prototype.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  cupertino_icons: ^1.0.9
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.6.0
+  intl: ^0.20.2
+  path_provider: ^2.1.5
+  provider: ^6.1.5+1
+  web: ^1.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# App launcher icon generated from the J mark. Regenerate after changing the
+# source image with: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/branding/icon_J32_2.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#FFFFFF"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/branding/icon_J32_2.png"
+  web:
+    generated: true
+    background_color: "#FFFFFF"
+    theme_color: "#0099CC"
+  macos:
+    generated: true
+  windows:
+    generated: true
+
+flutter:
+  uses-material-design: true
+  generate: true
+  assets:
+    - pubspec.yaml
+    - assets/branding/
+    - assets/images/
+    - assets/icons/
+    - assets/fonts/
