@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -66,6 +67,12 @@ class ApiClient {
     Map<String, String>? headers,
   }) => request('DELETE', path, body: body, query: query, headers: headers);
 
+  Future<Uint8List> getBytes(
+    String path, {
+    Map<String, Object?>? query,
+    Map<String, String>? headers,
+  }) => requestBytes('GET', path, query: query, headers: headers);
+
   Future<Object?> request(
     String method,
     String path, {
@@ -90,6 +97,44 @@ class ApiClient {
         );
       }
       return decoded;
+    } on ApiException {
+      rethrow;
+    } on TimeoutException catch (error) {
+      throw ApiException(message: 'API request timed out.', cause: error);
+    } on Object catch (error) {
+      throw ApiException(
+        message: 'Unable to connect to the API.',
+        cause: error,
+      );
+    }
+  }
+
+  Future<Uint8List> requestBytes(
+    String method,
+    String path, {
+    Object? body,
+    Map<String, Object?>? query,
+    Map<String, String>? headers,
+  }) async {
+    final uri = _resolve(path, query);
+    final requestHeaders = await _headers(headers);
+    final request = http.Request(method, uri)..headers.addAll(requestHeaders);
+    if (body != null) request.body = jsonEncode(body);
+
+    try {
+      final streamed = await _client.send(request).timeout(_timeout);
+      final response = await http.Response.fromStream(streamed);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        final decoded = _decode(
+          utf8.decode(response.bodyBytes, allowMalformed: true),
+        );
+        throw ApiException(
+          message: _errorMessage(decoded, response.reasonPhrase),
+          statusCode: response.statusCode,
+          body: decoded,
+        );
+      }
+      return response.bodyBytes;
     } on ApiException {
       rethrow;
     } on TimeoutException catch (error) {

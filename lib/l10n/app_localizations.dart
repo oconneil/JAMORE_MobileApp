@@ -1058,6 +1058,12 @@ abstract class AppLocalizations {
   /// **'ปี'**
   String get profileYearsUnit;
 
+  /// No description provided for @profileMonthsUnit.
+  ///
+  /// In th, this message translates to:
+  /// **'เดือน'**
+  String get profileMonthsUnit;
+
   /// No description provided for @profileDaysUnit.
   ///
   /// In th, this message translates to:

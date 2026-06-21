@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:jamore/application/hr/hr_workspace.dart';
 import 'package:jamore/application/ports/customer_api_session.dart';
 import 'package:jamore/application/session/session_coordinator.dart';
@@ -57,10 +59,17 @@ class FakeUserGateway implements UserGateway {
 }
 
 class FakeEmployeeGateway implements EmployeeGateway {
-  FakeEmployeeGateway({this.positionId = 'SE-DEL'});
+  FakeEmployeeGateway({
+    this.positionId = 'SE-DEL',
+    this.imageFile,
+    Uint8List? imageBytes,
+  }) : imageBytes = imageBytes ?? Uint8List(0);
 
   final String? positionId;
+  final String? imageFile;
+  final Uint8List imageBytes;
   String? requestedEmployeeId;
+  String? requestedEmployeeImageId;
 
   @override
   Future<EmployeeDetails> getEmployee(String employeeId) async {
@@ -69,10 +78,20 @@ class FakeEmployeeGateway implements EmployeeGateway {
       employeeId: employeeId,
       fullNameThai: 'กชวรรณ  เอนกลาภ',
       fullNameEng: 'Kotchawan  Aneklap',
+      imageFile: imageFile,
+      startDate: DateTime(2022, 4, 18),
       positionId: positionId,
       positionNameThai: 'หัวหน้าวิศวกรพัฒนาซอฟต์แวร์',
       positionNameEng: 'Software Development Engineer Leader',
+      departmentNameThai: 'วิศวกรรมซอฟต์แวร์',
+      departmentNameEng: 'Software Engineering',
     );
+  }
+
+  @override
+  Future<Uint8List> getEmployeeImage(String employeeId) async {
+    requestedEmployeeImageId = employeeId;
+    return imageBytes;
   }
 }
 

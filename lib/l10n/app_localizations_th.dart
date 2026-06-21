@@ -492,6 +492,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get profileYearsUnit => 'ปี';
 
   @override
+  String get profileMonthsUnit => 'เดือน';
+
+  @override
   String get profileDaysUnit => 'วัน';
 
   @override

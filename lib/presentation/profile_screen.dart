@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -24,6 +26,8 @@ class ProfileScreen extends StatelessWidget {
     final name = state.employeeDisplayName(isThai: isThai);
     final secondaryName = state.employeeDisplayName(isThai: !isThai);
     final position = state.employeePositionName(isThai: isThai);
+    final department = state.employeeDepartmentName(isThai: isThai);
+    final tenure = state.employeeTenure;
     final annualLeave = state.balanceFor(LeaveKind.annual).remaining;
     final overtimeHours = state.data.overtimeRequests.fold<double>(
       0,
@@ -43,12 +47,10 @@ class ProfileScreen extends StatelessWidget {
               state.employeeDisplayName(isThai: false),
               fallback: name,
             ),
+            imageBytes: state.currentEmployeeImageBytes,
             role: position ?? context.l10n.profileRoleFallback,
             employeeId: state.currentEmployee?.employeeId ?? 'EMP-XXX-XXX',
-            department:
-                state.currentEmployee?.departmentId ??
-                context.l10n.profileDesignTeam,
-            level: context.l10n.profileSeniorLevel,
+            department: department ?? context.l10n.profileDesignTeam,
             onEdit: () => state.navigate('/soon/personal-info'),
             onQrCode: () => _showUnavailable(context),
           ),
@@ -58,8 +60,12 @@ class ProfileScreen extends StatelessWidget {
               Expanded(
                 child: _StatTile(
                   icon: Icons.business_center_outlined,
-                  value: '4',
-                  unit: context.l10n.profileYearsUnit,
+                  value: tenure == null ? '-' : '${tenure.years}',
+                  unit: tenure == null
+                      ? ''
+                      : '${context.l10n.profileYearsUnit} '
+                            '${tenure.months}${context.l10n.profileMonthsUnit} '
+                            '${tenure.days}${context.l10n.profileDaysUnit}',
                   label: context.l10n.profileTenure,
                   color: JamoreColors.primary,
                 ),
@@ -227,10 +233,10 @@ class _ProfileHeader extends StatelessWidget {
     required this.name,
     required this.secondaryName,
     required this.initials,
+    required this.imageBytes,
     required this.role,
     required this.employeeId,
     required this.department,
-    required this.level,
     required this.onEdit,
     required this.onQrCode,
   });
@@ -238,10 +244,10 @@ class _ProfileHeader extends StatelessWidget {
   final String name;
   final String secondaryName;
   final String initials;
+  final Uint8List? imageBytes;
   final String role;
   final String employeeId;
   final String department;
-  final String level;
   final VoidCallback onEdit;
   final VoidCallback onQrCode;
 
@@ -326,13 +332,10 @@ class _ProfileHeader extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Text(
-                      initials,
-                      style: const TextStyle(
-                        color: JamoreColors.primaryDark,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    clipBehavior: Clip.antiAlias,
+                    child: _ProfileAvatar(
+                      imageBytes: imageBytes,
+                      initials: initials,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -430,13 +433,6 @@ class _ProfileHeader extends StatelessWidget {
                         value: department,
                       ),
                     ),
-                    const _HeaderDivider(),
-                    Expanded(
-                      child: _HeaderStat(
-                        label: context.l10n.profileLevel,
-                        value: level,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -444,6 +440,37 @@ class _ProfileHeader extends StatelessWidget {
           ),
         ),
       ],
+    ),
+  );
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  const _ProfileAvatar({required this.imageBytes, required this.initials});
+
+  final Uint8List? imageBytes;
+  final String initials;
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = imageBytes;
+    if (bytes == null) return _initials();
+    return Image.memory(
+      bytes,
+      key: const Key('profileAvatarImage'),
+      width: 76,
+      height: 76,
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => _initials(),
+    );
+  }
+
+  Widget _initials() => Text(
+    initials,
+    key: const Key('profileAvatarInitials'),
+    style: const TextStyle(
+      color: JamoreColors.primaryDark,
+      fontSize: 28,
+      fontWeight: FontWeight.w800,
     ),
   );
 }

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../domain/entities/auth_session.dart';
 import '../../domain/entities/employee_details.dart';
 import '../../domain/entities/user_details.dart';
@@ -13,11 +15,13 @@ class AuthenticatedSession {
     required this.auth,
     required this.user,
     required this.employee,
+    required this.employeeImageBytes,
   });
 
   final AuthSession auth;
   final UserDetails user;
   final EmployeeDetails? employee;
+  final Uint8List? employeeImageBytes;
 }
 
 class SessionFailure implements Exception {
@@ -90,7 +94,13 @@ class SessionCoordinator {
       final employee = user.employeeId == null
           ? null
           : await _employeeGateway.getEmployee(user.employeeId!);
-      return AuthenticatedSession(auth: auth, user: user, employee: employee);
+      final employeeImageBytes = await _loadEmployeeImage(employee);
+      return AuthenticatedSession(
+        auth: auth,
+        user: user,
+        employee: employee,
+        employeeImageBytes: employeeImageBytes,
+      );
     } on SessionFailure {
       _customerApiSession.clear();
       rethrow;
@@ -106,5 +116,15 @@ class SessionCoordinator {
   Future<void> signOut() async {
     await _authGateway.logout();
     _customerApiSession.clear();
+  }
+
+  Future<Uint8List?> _loadEmployeeImage(EmployeeDetails? employee) async {
+    final imageFile = employee?.imageFile?.trim();
+    if (imageFile == null || imageFile.isEmpty) return null;
+    try {
+      return await _employeeGateway.getEmployeeImage(employee!.employeeId);
+    } on RepositoryFailure {
+      return null;
+    }
   }
 }

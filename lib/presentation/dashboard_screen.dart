@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,15 +40,12 @@ class DashboardScreen extends StatelessWidget {
                   ],
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  initialsFromName(
+                clipBehavior: Clip.antiAlias,
+                child: _DashboardAvatar(
+                  imageBytes: state.currentEmployeeImageBytes,
+                  initials: initialsFromName(
                     state.employeeDisplayName(isThai: false),
                     fallback: displayName,
-                  ),
-                  key: const Key('dashboardAvatarInitials'),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: JamoreColors.primaryDark,
                   ),
                 ),
               ),
@@ -218,6 +216,36 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DashboardAvatar extends StatelessWidget {
+  const _DashboardAvatar({required this.imageBytes, required this.initials});
+
+  final Uint8List? imageBytes;
+  final String initials;
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = imageBytes;
+    if (bytes == null) return _initials();
+    return Image.memory(
+      bytes,
+      key: const Key('dashboardAvatarImage'),
+      width: 48,
+      height: 48,
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => _initials(),
+    );
+  }
+
+  Widget _initials() => Text(
+    initials,
+    key: const Key('dashboardAvatarInitials'),
+    style: const TextStyle(
+      fontWeight: FontWeight.w900,
+      color: JamoreColors.primaryDark,
+    ),
+  );
 }
 
 class _WorkHero extends StatelessWidget {

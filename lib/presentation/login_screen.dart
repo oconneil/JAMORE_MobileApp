@@ -17,9 +17,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _username = TextEditingController();
-  final _password = TextEditingController();
-  final _company = TextEditingController();
+  final _username = TextEditingController(text: 'kotchawan.a');
+  final _password = TextEditingController(text: 'P@ssw0rd');
+  final _company = TextEditingController(text: 'JCORP');
   bool _remember = true;
   bool _obscure = true;
   bool _busy = false;

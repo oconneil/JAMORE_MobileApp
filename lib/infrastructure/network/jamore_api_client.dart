@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../application/ports/customer_api_session.dart';
 import 'api_client.dart';
 import 'api_exception.dart';
@@ -98,6 +100,21 @@ class JamoreApiClient extends ApiClient {
     Map<String, Object?>? query,
     Map<String, String>? headers,
   }) => super.request(
+    method,
+    path,
+    body: body,
+    query: query,
+    headers: {...?headers, 'x-companyid': connection.companyId},
+  );
+
+  @override
+  Future<Uint8List> requestBytes(
+    String method,
+    String path, {
+    Object? body,
+    Map<String, Object?>? query,
+    Map<String, String>? headers,
+  }) => super.requestBytes(
     method,
     path,
     body: body,

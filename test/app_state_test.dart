@@ -34,6 +34,14 @@ void main() {
           state.employeePositionName(isThai: false),
           'Software Development Engineer Leader',
         );
+        expect(state.employeeDepartmentName(isThai: true), 'วิศวกรรมซอฟต์แวร์');
+        expect(
+          state.employeeDepartmentName(isThai: false),
+          'Software Engineering',
+        );
+        expect(state.employeeTenure?.years, 4);
+        expect(state.employeeTenure?.months, 2);
+        expect(state.employeeTenure?.days, 2);
 
         final restored = await createTestState(store: store, authGateway: auth);
         expect(restored.isAuthenticated, isTrue);
@@ -62,6 +70,15 @@ void main() {
       expect(await login(state), isTrue);
       expect(state.employeePositionName(isThai: true), isNull);
       expect(state.employeePositionName(isThai: false), isNull);
+    });
+
+    test('skips employee image API when ImgFile is empty', () async {
+      final employeeGateway = FakeEmployeeGateway(imageFile: '   ');
+      final state = await createTestState(employeeGateway: employeeGateway);
+
+      expect(await login(state), isTrue);
+      expect(employeeGateway.requestedEmployeeImageId, isNull);
+      expect(state.currentEmployeeImageBytes, isNull);
     });
 
     test('counts weekdays and supports half day', () async {

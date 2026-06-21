@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jamore/app.dart';
@@ -50,6 +53,31 @@ void main() {
 
     expect(find.text('KA'), findsOneWidget);
     expect(find.text('NJ'), findsNothing);
+  });
+
+  testWidgets('dashboard avatar shows employee image when ImgFile exists', (
+    tester,
+  ) async {
+    final imageBytes = Uint8List.fromList(
+      base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL1WQAAAABJRU5ErkJggg==',
+      ),
+    );
+    final employeeGateway = FakeEmployeeGateway(
+      imageFile: 'E2022-084.jpg',
+      imageBytes: imageBytes,
+    );
+    final state = await createTestState(employeeGateway: employeeGateway);
+    await login(state);
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(testApp(state));
+    await tester.pumpAndSettle();
+
+    expect(employeeGateway.requestedEmployeeImageId, 'E2022-084');
+    expect(find.byKey(const Key('dashboardAvatarImage')), findsOneWidget);
+    expect(find.byKey(const Key('dashboardAvatarInitials')), findsNothing);
   });
 
   testWidgets('invalid login displays localized error', (tester) async {
@@ -113,6 +141,7 @@ void main() {
     expect(find.text('Language'), findsOneWidget);
     expect(find.text('Sign out'), findsOneWidget);
     expect(find.text('Kotchawan Aneklap'), findsOneWidget);
+    expect(find.text('Software Engineering'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -135,8 +164,40 @@ void main() {
 
     expect(state.location, '/profile');
     expect(find.byKey(const Key('profileHeader')), findsOneWidget);
+    expect(find.text('วิศวกรรมซอฟต์แวร์'), findsOneWidget);
+    expect(find.text('ระดับ'), findsNothing);
+    expect(find.text('4ปี'), findsOneWidget);
+    expect(find.text('2เดือน 2วัน'), findsOneWidget);
     expect(find.byKey(const Key('languageSelector')), findsOneWidget);
     expect(find.byKey(const Key('signOutButton')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('profile avatar shows employee image when ImgFile exists', (
+    tester,
+  ) async {
+    final imageBytes = Uint8List.fromList(
+      base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL1WQAAAABJRU5ErkJggg==',
+      ),
+    );
+    final state = await createTestState(
+      employeeGateway: FakeEmployeeGateway(
+        imageFile: 'E2022-084.jpg',
+        imageBytes: imageBytes,
+      ),
+    );
+    await login(state);
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(testApp(state));
+    await tester.pumpAndSettle();
+    state.navigate('/profile');
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('profileAvatarImage')), findsOneWidget);
+    expect(find.byKey(const Key('profileAvatarInitials')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

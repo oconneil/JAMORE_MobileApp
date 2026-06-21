@@ -10,6 +10,8 @@ class HrWorkspace {
 
   late DemoData data;
 
+  DateTime get now => _clock();
+
   Future<void> initialize() async => data = await _repository.load();
 
   LeaveBalance balanceFor(LeaveKind kind) =>

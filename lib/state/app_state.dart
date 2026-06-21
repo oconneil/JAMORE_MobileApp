@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../application/hr/hr_workspace.dart';
@@ -16,6 +18,7 @@ class AppState extends ChangeNotifier {
 
   UserDetails? currentUser;
   EmployeeDetails? currentEmployee;
+  Uint8List? currentEmployeeImageBytes;
   bool initialized = false;
   String location = '/login';
   String? loginError;
@@ -35,6 +38,12 @@ class AppState extends ChangeNotifier {
 
   String? employeePositionName({required bool isThai}) =>
       currentEmployee?.displayPositionName(isThai: isThai);
+
+  String? employeeDepartmentName({required bool isThai}) =>
+      currentEmployee?.displayDepartmentName(isThai: isThai);
+
+  EmploymentTenure? get employeeTenure =>
+      currentEmployee?.tenureAsOf(_workspace.now);
 
   Future<void> initialize() async {
     await _workspace.initialize();
@@ -64,6 +73,7 @@ class AppState extends ChangeNotifier {
       );
       currentUser = session.user;
       currentEmployee = session.employee;
+      currentEmployeeImageBytes = session.employeeImageBytes;
       await _workspace.updateSession(
         localeCode: _languageCode(
           session.user.defaultLanguage ?? session.auth.defaultLanguage,
@@ -193,6 +203,7 @@ class AppState extends ChangeNotifier {
   void _clearProfile() {
     currentUser = null;
     currentEmployee = null;
+    currentEmployeeImageBytes = null;
   }
 
   static bool sameDay(DateTime a, DateTime b) => HrWorkspace.sameDay(a, b);

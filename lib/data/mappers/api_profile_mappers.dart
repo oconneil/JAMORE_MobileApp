@@ -61,11 +61,14 @@ abstract final class ApiProfileMappers {
       employeeLastnameThai: _text(_field(employee, 'employeeLastnameThai')),
       employeeLastnameEng: _text(_field(employee, 'employeeLastnameEng')),
       imageFile: _text(_field(employee, 'imgFile')),
+      startDate: _date(_field(employee, 'startDate')),
       emailCompany: _text(_field(employee, 'emailCompany')),
       positionId: _text(_field(employee, 'positionID')),
       departmentId: _text(_field(employee, 'departmentID')),
       positionNameThai: _text(_field(display, 'positionNameThai')),
       positionNameEng: _text(_field(display, 'positionNameEng')),
+      departmentNameThai: _text(_field(display, 'departmentNameThai')),
+      departmentNameEng: _text(_field(display, 'departmentNameEng')),
     );
   }
 
@@ -95,6 +98,13 @@ abstract final class ApiProfileMappers {
   static String? _text(Object? value) {
     final text = value?.toString().trim();
     return text == null || text.isEmpty ? null : text;
+  }
+
+  static DateTime? _date(Object? value) {
+    final parsed = DateTime.tryParse(value?.toString().trim() ?? '');
+    return parsed == null
+        ? null
+        : DateTime(parsed.year, parsed.month, parsed.day);
   }
 
   static bool _bool(Object? value) => switch (value) {
