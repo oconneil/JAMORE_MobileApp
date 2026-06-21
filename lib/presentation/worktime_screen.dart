@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../core/extensions.dart';
@@ -34,6 +35,10 @@ class _WorktimeMain extends StatelessWidget {
     final total = state.data.workLogs
         .take(7)
         .fold<Duration>(Duration.zero, (sum, log) => sum + log.duration);
+    final lateCount = state.data.workLogs.take(7).where(_isLate).length;
+    final overtimeHours = state.data.overtimeRequests
+        .where((item) => item.status == RequestStatus.approved)
+        .fold<double>(0, (sum, item) => sum + item.hours);
     return PageSurface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,104 +47,126 @@ class _WorktimeMain extends StatelessWidget {
             title: context.l10n.worktimeTitle,
             subtitle: context.l10n.worktimeTracker,
           ),
-          JamoreCard(
-            padding: EdgeInsets.zero,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(22),
-              child: Column(
-                children: [
-                  const SizedBox(height: 150, child: _MiniMap()),
-                  Padding(
-                    padding: const EdgeInsets.all(18),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFDCFCE7),
-                                borderRadius: BorderRadius.circular(9),
-                              ),
-                              child: const Icon(
-                                Icons.location_on_rounded,
-                                color: JamoreColors.success,
-                                size: 18,
-                              ),
+          Container(
+            key: const Key('worktimeTodayCard'),
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: JamoreColors.line),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 130, child: _MiniMap()),
+                Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDCFCE7),
+                              borderRadius: BorderRadius.circular(9),
                             ),
-                            const SizedBox(width: 9),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    context.l10n.officeName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: JamoreColors.success,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 9),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  context.l10n.officeName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
                                   ),
-                                  Text(
-                                    context.l10n.gpsVerified,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      color: JamoreColors.muted,
-                                    ),
+                                ),
+                                Text(
+                                  '${context.l10n.gpsVerified} · ${context.l10n.locationVerified}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: JamoreColors.muted,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _TimeTile(
-                                label: context.l10n.checkInTime,
-                                time: today?.clockIn == null
-                                    ? '—'
-                                    : context.time(today!.clockIn!),
-                                color: JamoreColors.success,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _TimeTile(
-                                label: context.l10n.checkOutTime,
-                                time: today?.clockOut == null
-                                    ? '—'
-                                    : context.time(today!.clockOut!),
-                                color: today?.clockOut == null
-                                    ? const Color(0xFFCBD5E1)
-                                    : JamoreColors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (!finished) ...[
-                          const SizedBox(height: 14),
-                          PrimaryButton(
-                            label: working
-                                ? context.l10n.clockOut
-                                : context.l10n.clockIn,
-                            onPressed: () =>
-                                state.navigate('/worktime/check-in'),
-                            icon: working
-                                ? Icons.logout_rounded
-                                : Icons.login_rounded,
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _TimeTile(
+                              key: const Key('worktimeClockInSummary'),
+                              label: context.l10n.checkInTime,
+                              time: today?.clockIn == null
+                                  ? '—'
+                                  : context.time(today!.clockIn!),
+                              color: JamoreColors.success,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _TimeTile(
+                              key: const Key('worktimeClockOutSummary'),
+                              label: context.l10n.checkOutTime,
+                              time: today?.clockOut == null
+                                  ? '—'
+                                  : context.time(today!.clockOut!),
+                              color: today?.clockOut == null
+                                  ? const Color(0xFFCBD5E1)
+                                  : JamoreColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!finished) ...[
+                        const SizedBox(height: 14),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: FilledButton.icon(
+                            key: const Key('worktimeRecordButton'),
+                            onPressed: () =>
+                                state.navigate('/worktime/check-in'),
+                            icon: const Icon(Icons.schedule_rounded, size: 18),
+                            label: Text(
+                              context.isThai
+                                  ? '${working ? context.l10n.clockOut : context.l10n.clockIn} · ${working ? 'Clock out' : 'Clock in'}'
+                                  : working
+                                  ? context.l10n.clockOut
+                                  : context.l10n.clockIn,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 22),
           SectionHeading(
             title: context.l10n.thisWeek,
+            subtitle: context.isThai ? 'This week' : null,
             onSeeAll: () => state.navigate('/worktime/history'),
           ),
           const SizedBox(height: 10),
@@ -147,19 +174,30 @@ class _WorktimeMain extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  context.l10n.totalHours,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: JamoreColors.muted,
-                  ),
-                ),
-                Text(
-                  '${(total.inMinutes / 60).toStringAsFixed(1)} / 40 ${context.l10n.hours}',
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _WeeklyMetric(
+                        label: context.l10n.totalHours,
+                        value: (total.inMinutes / 60).toStringAsFixed(1),
+                        suffix: '/ 40 ${context.l10n.hours}',
+                      ),
+                    ),
+                    Expanded(
+                      child: _WeeklyMetric(
+                        label: context.l10n.late,
+                        value: '$lateCount',
+                        color: JamoreColors.warning,
+                      ),
+                    ),
+                    Expanded(
+                      child: _WeeklyMetric(
+                        label: 'OT',
+                        value: _compact(overtimeHours),
+                        color: JamoreColors.primary,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 18),
                 SizedBox(
@@ -191,11 +229,13 @@ class _WorktimeMain extends StatelessWidget {
                                     widthFactor: 1,
                                     child: DecoratedBox(
                                       decoration: BoxDecoration(
-                                        color: hours > 10
+                                        color: log == null || hours == 0
+                                            ? const Color(0xFFF1F5F9)
+                                            : _isLate(log)
+                                            ? JamoreColors.warning
+                                            : hours > 10
                                             ? JamoreColors.primary
-                                            : hours > 0
-                                            ? JamoreColors.success
-                                            : const Color(0xFFF1F5F9),
+                                            : JamoreColors.success,
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                     ),
@@ -235,12 +275,29 @@ class _WorktimeMain extends StatelessWidget {
                     }),
                   ),
                 ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 6,
+                  children: [
+                    _WorkLegend(
+                      color: JamoreColors.success,
+                      label: context.isThai ? 'ปกติ' : 'Normal',
+                    ),
+                    _WorkLegend(
+                      color: JamoreColors.warning,
+                      label: context.l10n.late,
+                    ),
+                    const _WorkLegend(color: JamoreColors.primary, label: 'OT'),
+                  ],
+                ),
               ],
             ),
           ),
           const SizedBox(height: 22),
           SectionHeading(
             title: context.l10n.recentHistory,
+            subtitle: context.isThai ? 'Recent days' : null,
             onSeeAll: () => state.navigate('/worktime/history'),
           ),
           const SizedBox(height: 10),
@@ -254,6 +311,96 @@ class _WorktimeMain extends StatelessWidget {
       ),
     );
   }
+
+  static bool _isLate(WorkLog log) =>
+      log.clockIn != null &&
+      (log.clockIn!.hour > 9 ||
+          log.clockIn!.hour == 9 && log.clockIn!.minute > 0);
+
+  static String _compact(double value) =>
+      value.toStringAsFixed(value % 1 == 0 ? 0 : 1);
+}
+
+class _WeeklyMetric extends StatelessWidget {
+  const _WeeklyMetric({
+    required this.label,
+    required this.value,
+    this.suffix,
+    this.color = JamoreColors.ink,
+  });
+
+  final String label;
+  final String value;
+  final String? suffix;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: JamoreColors.muted,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(height: 2),
+      Text.rich(
+        TextSpan(
+          text: value,
+          children: suffix == null
+              ? const []
+              : [
+                  TextSpan(
+                    text: ' $suffix',
+                    style: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0,
+                    ),
+                  ),
+                ],
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: 24,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -.5,
+        ),
+      ),
+    ],
+  );
+}
+
+class _WorkLegend extends StatelessWidget {
+  const _WorkLegend({required this.color, required this.label});
+
+  final Color color;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      ),
+      const SizedBox(width: 4),
+      Text(
+        label,
+        style: const TextStyle(color: JamoreColors.muted, fontSize: 10),
+      ),
+    ],
+  );
 }
 
 class _TimeTile extends StatelessWidget {
@@ -261,6 +408,7 @@ class _TimeTile extends StatelessWidget {
     required this.label,
     required this.time,
     required this.color,
+    super.key,
   });
   final String label;
   final String time;
@@ -308,46 +456,108 @@ class _WorkRow extends StatelessWidget {
         log.clockIn != null &&
         (log.clockIn!.hour > 9 ||
             log.clockIn!.hour == 9 && log.clockIn!.minute > 0);
+    final working = log.isWorking;
+    final background = working
+        ? JamoreColors.primarySoft
+        : late
+        ? const Color(0xFFFEF3C7)
+        : const Color(0xFFDCFCE7);
+    final foreground = working
+        ? JamoreColors.primaryDark
+        : late
+        ? const Color(0xFFB45309)
+        : const Color(0xFF15803D);
+    final status = working
+        ? context.l10n.working
+        : late
+        ? context.l10n.late
+        : context.isThai
+        ? 'ปกติ'
+        : 'Normal';
+    final dayLabel = context.isThai
+        ? const ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'][log.date.weekday - 1]
+        : const ['M', 'T', 'W', 'T', 'F', 'S', 'S'][log.date.weekday - 1];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: late ? const Color(0xFFFEF3C7) : const Color(0xFFDCFCE7),
-              borderRadius: BorderRadius.circular(11),
+              color: background,
+              borderRadius: BorderRadius.circular(10),
             ),
-            alignment: Alignment.center,
-            child: Text(
-              '${log.date.day}',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                color: late ? const Color(0xFFB45309) : const Color(0xFF15803D),
-              ),
-            ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Wrap(
-              spacing: 18,
-              runSpacing: 3,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '${context.l10n.checkInTime} ${log.clockIn == null ? '—' : context.time(log.clockIn!)}',
-                  style: const TextStyle(fontSize: 12),
+                  dayLabel,
+                  style: TextStyle(
+                    height: 1,
+                    color: foreground,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                const SizedBox(height: 2),
                 Text(
-                  '${context.l10n.checkOutTime} ${log.clockOut == null ? '—' : context.time(log.clockOut!)}',
-                  style: const TextStyle(fontSize: 12),
+                  '${log.date.day}',
+                  style: TextStyle(
+                    height: 1,
+                    color: foreground,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
           ),
-          Text(
-            '${hours.toStringAsFixed(1)} ${context.l10n.hours}',
-            style: const TextStyle(fontWeight: FontWeight.w800),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: _WorkTimeCell(
+                    label: context.isThai ? 'เข้า' : 'In',
+                    value: log.clockIn == null
+                        ? '—'
+                        : context.time(log.clockIn!),
+                  ),
+                ),
+                Expanded(
+                  child: _WorkTimeCell(
+                    label: context.isThai ? 'ออก' : 'Out',
+                    value: log.clockOut == null
+                        ? '—'
+                        : context.time(log.clockOut!),
+                  ),
+                ),
+                Expanded(
+                  child: _WorkTimeCell(
+                    label: context.isThai ? 'รวม' : 'Total',
+                    value: working
+                        ? '—'
+                        : '${hours.toStringAsFixed(1)} ${context.l10n.hours}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(99),
+            ),
+            child: Text(
+              status,
+              style: TextStyle(
+                color: foreground,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
       ),
@@ -355,11 +565,37 @@ class _WorkRow extends StatelessWidget {
   }
 }
 
+class _WorkTimeCell extends StatelessWidget {
+  const _WorkTimeCell({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
+      ),
+      const SizedBox(height: 1),
+      Text(
+        value,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+      ),
+    ],
+  );
+}
+
 class _WorkHistory extends StatelessWidget {
   const _WorkHistory();
   @override
   Widget build(BuildContext context) {
-    final logs = context.watch<AppState>().data.workLogs;
+    final state = context.watch<AppState>();
+    final logs = state.data.workLogs;
     final total = logs.fold<Duration>(
       Duration.zero,
       (sum, log) => sum + log.duration,
@@ -367,33 +603,55 @@ class _WorkHistory extends StatelessWidget {
     final late = logs
         .where((log) => log.clockIn != null && log.clockIn!.hour >= 9)
         .length;
+    final overtimeHours = state.data.overtimeRequests
+        .where((item) => item.status == RequestStatus.approved)
+        .fold<double>(0, (sum, item) => sum + item.hours);
     return PageSurface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PageHeading(title: context.l10n.workHistory, backTo: '/worktime'),
+          PageHeading(
+            title: context.l10n.workHistory,
+            subtitle: DateFormat.yMMMM(
+              context.isThai ? 'th' : 'en',
+            ).format(DateTime.now()),
+            backTo: '/worktime',
+          ),
           JamoreCard(
             child: Row(
               children: [
                 Expanded(
                   child: _HistoryMetric(
+                    label: context.isThai ? 'วันทำงาน' : 'Work days',
+                    value: '${logs.length}',
+                    suffix: context.l10n.days,
+                    color: JamoreColors.ink,
+                  ),
+                ),
+                Expanded(
+                  child: _HistoryMetric(
                     label: context.l10n.totalHours,
                     value: (total.inMinutes / 60).toStringAsFixed(1),
-                    color: JamoreColors.primary,
+                    suffix: context.l10n.hours,
+                    color: JamoreColors.ink,
                   ),
                 ),
                 Expanded(
                   child: _HistoryMetric(
                     label: context.l10n.late,
                     value: '$late',
+                    suffix: context.l10n.days,
                     color: JamoreColors.warning,
                   ),
                 ),
                 Expanded(
                   child: _HistoryMetric(
-                    label: context.l10n.days,
-                    value: '${logs.length}',
-                    color: JamoreColors.success,
+                    label: 'OT',
+                    value: overtimeHours.toStringAsFixed(
+                      overtimeHours % 1 == 0 ? 0 : 1,
+                    ),
+                    suffix: context.l10n.hours,
+                    color: JamoreColors.primary,
                   ),
                 ),
               ],
@@ -417,10 +675,12 @@ class _HistoryMetric extends StatelessWidget {
     required this.label,
     required this.value,
     required this.color,
+    this.suffix,
   });
   final String label;
   final String value;
   final Color color;
+  final String? suffix;
   @override
   Widget build(BuildContext context) => Column(
     children: [
@@ -429,11 +689,26 @@ class _HistoryMetric extends StatelessWidget {
         textAlign: TextAlign.center,
         style: const TextStyle(fontSize: 10, color: JamoreColors.muted),
       ),
-      Text(
-        value,
+      Text.rich(
+        TextSpan(
+          text: value,
+          children: suffix == null
+              ? const []
+              : [
+                  TextSpan(
+                    text: ' $suffix',
+                    style: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+        ),
+        maxLines: 1,
         style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.w900,
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
           color: color,
         ),
       ),
@@ -524,9 +799,8 @@ class _TimeFlowState extends State<_TimeFlow> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           PageHeading(
-            title: action,
-            subtitle:
-                '${step + 1}/2 · ${step == 0 ? context.l10n.verifyLocation : context.l10n.selfie}',
+            title: context.isThai ? 'ลงเวลา' : 'Record time',
+            subtitle: step == 0 ? '1/2 · GPS verify' : '2/2 · Selfie',
             backTo: '/worktime',
           ),
           Row(
@@ -557,7 +831,7 @@ class _TimeFlowState extends State<_TimeFlow> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 240, child: _MiniMap()),
+                    const SizedBox(height: 220, child: _MiniMap()),
                     Padding(
                       padding: const EdgeInsets.all(18),
                       child: Column(
@@ -592,6 +866,40 @@ class _TimeFlowState extends State<_TimeFlow> {
                           Text(
                             context.l10n.officeAddress,
                             style: const TextStyle(color: JamoreColors.muted),
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _LocationMetric(
+                                    label: context.isThai
+                                        ? 'ระยะห่าง'
+                                        : 'Distance',
+                                    value: context.isThai ? '8 ม.' : '8 m',
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _LocationMetric(
+                                    label: context.isThai
+                                        ? 'ความแม่นยำ'
+                                        : 'Accuracy',
+                                    value: context.isThai ? '3 ม.' : '3 m',
+                                  ),
+                                ),
+                                const Expanded(
+                                  child: _LocationMetric(
+                                    label: 'GPS',
+                                    value: '✓ Strong',
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -688,7 +996,9 @@ class _TimeFlowState extends State<_TimeFlow> {
             const SizedBox(height: 14),
             PrimaryButton(
               label: ready
-                  ? '${context.l10n.confirm} $action'
+                  ? context.isThai
+                        ? 'ยืนยันลงเวลา · Confirm'
+                        : 'Confirm time record'
                   : context.l10n.checking,
               onPressed: ready ? _record : null,
               busy: !ready,
@@ -698,6 +1008,33 @@ class _TimeFlowState extends State<_TimeFlow> {
       ),
     );
   }
+}
+
+class _LocationMetric extends StatelessWidget {
+  const _LocationMetric({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
+      ),
+      const SizedBox(height: 2),
+      Text(
+        value,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+      ),
+    ],
+  );
 }
 
 class _MiniMap extends StatelessWidget {

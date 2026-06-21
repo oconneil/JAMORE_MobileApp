@@ -253,6 +253,7 @@ void main() {
   for (final destination in <({String route, String designKey})>[
     (route: '/leave', designKey: 'leaveBalanceCard'),
     (route: '/overtime', designKey: 'otSummaryHero'),
+    (route: '/worktime', designKey: 'worktimeTodayCard'),
   ]) {
     for (final size in <Size>[
       const Size(390, 844),
@@ -273,7 +274,20 @@ void main() {
           await tester.pumpAndSettle();
 
           expect(find.byKey(Key(destination.designKey)), findsOneWidget);
-          expect(find.byKey(const Key('requestFilter_all')), findsOneWidget);
+          if (destination.route == '/worktime') {
+            expect(
+              find.byKey(const Key('worktimeClockInSummary')),
+              findsOneWidget,
+            );
+            expect(
+              find.byKey(const Key('worktimeClockOutSummary')),
+              findsOneWidget,
+            );
+            expect(find.text('พักเริ่ม'), findsNothing);
+            expect(find.text('พักจบ'), findsNothing);
+          } else {
+            expect(find.byKey(const Key('requestFilter_all')), findsOneWidget);
+          }
           expect(tester.takeException(), isNull);
         },
       );
@@ -287,6 +301,8 @@ void main() {
     '/leave/L-0042',
     '/overtime/request',
     '/overtime/OT-0091',
+    '/worktime/check-in',
+    '/worktime/history',
   ]) {
     testWidgets('$route has no mobile layout errors', (tester) async {
       final state = await createTestState();
