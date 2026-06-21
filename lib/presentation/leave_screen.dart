@@ -43,87 +43,110 @@ class _LeaveMainState extends State<_LeaveMain> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PageHeading(
-            title: context.l10n.leave,
-            subtitle: context.l10n.leaveHistory,
-          ),
-          LayoutBuilder(
-            builder: (context, constraints) => GridView.count(
-              crossAxisCount: constraints.maxWidth >= 620 ? 4 : 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 1.45,
-              children: state.data.leaveBalances
-                  .map((balance) => _BalanceTile(balance))
-                  .toList(),
+          PageHeading(title: context.l10n.leave, subtitle: 'Leave management'),
+          Container(
+            key: const Key('leaveBalanceCard'),
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: JamoreColors.line),
             ),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () => state.navigate('/leave/request'),
-                  icon: const Icon(Icons.add_rounded),
-                  label: Text(context.l10n.requestLeave),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton.filledTonal(
-                tooltip: context.l10n.teamCalendar,
-                onPressed: () => state.navigate('/leave/calendar'),
-                icon: const Icon(Icons.calendar_month_rounded),
-              ),
-              const SizedBox(width: 8),
-              Badge(
-                label: Text(
-                  '${state.data.teamApprovals.where((item) => item.status == RequestStatus.pending).length}',
-                ),
-                child: IconButton.filledTonal(
-                  tooltip: context.l10n.pendingApprovals,
-                  onPressed: () => state.navigate('/leave/approvals'),
-                  icon: const Icon(Icons.approval_rounded),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 22),
-          SectionHeading(title: context.l10n.leaveHistory),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
+            child: Column(
               children: [
-                ChoiceChip(
-                  label: Text(context.l10n.all),
-                  selected: filter == null,
-                  onSelected: (_) => setState(() => filter = null),
-                ),
-                const SizedBox(width: 7),
-                ...RequestStatus.values.map(
-                  (status) => Padding(
-                    padding: const EdgeInsets.only(right: 7),
-                    child: ChoiceChip(
-                      label: Text(context.status(status)),
-                      selected: filter == status,
-                      onSelected: (_) => setState(() => filter = status),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${context.l10n.leaveBalance} · ${DateTime.now().year}',
+                        style: const TextStyle(
+                          color: JamoreColors.muted,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                  ),
+                    TextButton(
+                      key: const Key('leaveTeamCalendarButton'),
+                      onPressed: () => state.navigate('/leave/calendar'),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text('${context.l10n.teamCalendar} →'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: state.data.leaveBalances
+                      .map((balance) => Expanded(child: _BalanceTile(balance)))
+                      .toList(),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
-          JamoreCard(
-            padding: const EdgeInsets.all(4),
-            child: items.isEmpty
-                ? const EmptyMessage()
-                : Column(
-                    children: items.map((item) => _LeaveRow(item)).toList(),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: FilledButton.icon(
+                  key: const Key('newLeaveButton'),
+                  onPressed: () => state.navigate('/leave/request'),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: Text(context.l10n.newLeaveRequest),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Badge(
+                  alignment: const Alignment(.82, -.82),
+                  label: Text(
+                    '${state.data.teamApprovals.where((item) => item.status == RequestStatus.pending).length}',
+                  ),
+                  child: OutlinedButton(
+                    key: const Key('leaveApprovalsButton'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                      foregroundColor: JamoreColors.ink,
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: JamoreColors.line),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    onPressed: () => state.navigate('/leave/approvals'),
+                    child: Text(context.l10n.approve),
+                  ),
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 20),
+          RequestStatusFilter(
+            value: filter,
+            onChanged: (value) => setState(() => filter = value),
+          ),
+          const SizedBox(height: 14),
+          if (items.isEmpty)
+            const JamoreCard(child: EmptyMessage())
+          else
+            ...items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _LeaveRow(item),
+              ),
+            ),
         ],
       ),
     );
@@ -135,38 +158,70 @@ class _BalanceTile extends StatelessWidget {
   final LeaveBalance item;
 
   @override
-  Widget build(BuildContext context) => JamoreCard(
-    padding: const EdgeInsets.all(13),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) {
+    final color = switch (item.kind) {
+      LeaveKind.annual => const Color(0xFF3B82F6),
+      LeaveKind.sick => const Color(0xFF10B981),
+      LeaveKind.personal => const Color(0xFFF59E0B),
+      LeaveKind.maternity => const Color(0xFFEC4899),
+    };
+    final remaining = item.remaining.toStringAsFixed(
+      item.remaining % 1 == 0 ? 0 : 1,
+    );
+    return Column(
       children: [
-        Expanded(
-          child: Text(
-            context.leaveKind(item.kind),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: JamoreColors.muted,
-            ),
+        SizedBox.square(
+          dimension: 56,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox.square(
+                dimension: 56,
+                child: CircularProgressIndicator(
+                  value: item.total == 0 ? 0 : item.remaining / item.total,
+                  strokeWidth: 5,
+                  backgroundColor: const Color(0xFFF1F5F9),
+                  color: color,
+                ),
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    remaining,
+                    style: const TextStyle(
+                      height: 1,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    '/ ${item.total.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 8,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
+        const SizedBox(height: 6),
         Text(
-          item.remaining.toStringAsFixed(item.remaining % 1 == 0 ? 0 : 1),
+          context.leaveKind(item.kind),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
           style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
-            color: JamoreColors.primary,
+            color: Color(0xFF475569),
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
           ),
-        ),
-        Text(
-          '/ ${item.total.toStringAsFixed(0)} ${context.l10n.days}',
-          style: const TextStyle(fontSize: 10, color: JamoreColors.muted),
         ),
       ],
-    ),
-  );
+    );
+  }
 }
 
 class _LeaveRow extends StatelessWidget {
@@ -174,47 +229,93 @@ class _LeaveRow extends StatelessWidget {
   final LeaveRequest item;
 
   @override
-  Widget build(BuildContext context) => InkWell(
-    borderRadius: BorderRadius.circular(17),
-    onTap: () => context.read<AppState>().navigate('/leave/${item.id}'),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: const Color(0x140099CC),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.beach_access_rounded,
-              color: JamoreColors.primary,
-            ),
-          ),
-          const SizedBox(width: 11),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  context.leaveKind(item.kind),
-                  style: const TextStyle(fontWeight: FontWeight.w800),
-                ),
-                Text(
-                  '${context.date(item.start, year: false)} — ${context.date(item.end)} · ${item.days} ${context.l10n.days}',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: JamoreColors.muted,
+  Widget build(BuildContext context) => Material(
+    color: Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(18),
+      side: const BorderSide(color: JamoreColors.line),
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: InkWell(
+      onTap: () => context.read<AppState>().navigate('/leave/${item.id}'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    item.days.toStringAsFixed(item.days % 1 == 0 ? 0 : 1),
+                    style: const TextStyle(
+                      height: 1,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                ),
-              ],
+                  Text(
+                    context.l10n.days,
+                    style: const TextStyle(
+                      color: JamoreColors.muted,
+                      fontSize: 9,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          StatusBadge(item.status),
-          const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
-        ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          context.leaveKind(item.kind),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      StatusBadge(item.status),
+                    ],
+                  ),
+                  Text(
+                    '${context.date(item.start, year: false)} → ${context.date(item.end)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: JamoreColors.muted,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '“${item.reason}”',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
+          ],
+        ),
       ),
     ),
   );
@@ -326,9 +427,14 @@ class _LeaveRequestScreenState extends State<_LeaveRequestScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PageHeading(title: context.l10n.newLeaveRequest, backTo: '/leave'),
+            PageHeading(
+              title: context.l10n.requestLeave,
+              subtitle: context.isThai ? 'New leave request' : null,
+              backTo: '/leave',
+            ),
             _FormSection(
               title: context.l10n.leaveType,
+              subtitle: context.isThai ? 'Leave type' : null,
               child: LayoutBuilder(
                 builder: (context, constraints) => GridView.count(
                   crossAxisCount: constraints.maxWidth > 520 ? 4 : 2,
@@ -359,6 +465,7 @@ class _LeaveRequestScreenState extends State<_LeaveRequestScreen> {
             const SizedBox(height: 12),
             _FormSection(
               title: context.l10n.dateRange,
+              subtitle: context.isThai ? 'Date range' : null,
               child: Column(
                 children: [
                   Row(
@@ -410,6 +517,7 @@ class _LeaveRequestScreenState extends State<_LeaveRequestScreen> {
             const SizedBox(height: 12),
             _FormSection(
               title: context.l10n.reason,
+              subtitle: context.isThai ? 'Reason' : null,
               child: TextFormField(
                 controller: reason,
                 maxLines: 3,
@@ -422,6 +530,7 @@ class _LeaveRequestScreenState extends State<_LeaveRequestScreen> {
             const SizedBox(height: 12),
             _FormSection(
               title: context.l10n.attachmentOptional,
+              subtitle: context.isThai ? 'Attachment' : null,
               child: OutlinedButton.icon(
                 onPressed: _attachment,
                 icon: Icon(
@@ -437,7 +546,9 @@ class _LeaveRequestScreenState extends State<_LeaveRequestScreen> {
             ),
             const SizedBox(height: 18),
             PrimaryButton(
-              label: context.l10n.submitRequest,
+              label: context.isThai
+                  ? '${context.l10n.submitRequest} · Submit'
+                  : context.l10n.submitRequest,
               onPressed: _submit,
               busy: busy,
             ),
@@ -623,13 +734,17 @@ class _TeamCalendarScreenState extends State<_TeamCalendarScreen> {
     final approvals = context.watch<AppState>().data.teamApprovals;
     final firstWeekday = DateTime(month.year, month.month, 1).weekday % 7;
     final count = DateUtils.getDaysInMonth(month.year, month.month);
-    final cells = List<int?>.filled(firstWeekday, null)
+    final cells = List<int?>.filled(firstWeekday, null, growable: true)
       ..addAll(List.generate(count, (index) => index + 1));
     return PageSurface(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PageHeading(title: context.l10n.teamCalendar, backTo: '/leave'),
+          PageHeading(
+            title: context.l10n.teamCalendar,
+            subtitle: context.isThai ? 'Team leave calendar' : null,
+            backTo: '/leave',
+          ),
           JamoreCard(
             child: Column(
               children: [
@@ -783,7 +898,11 @@ class _ApprovalScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PageHeading(title: context.l10n.teamPending, backTo: '/leave'),
+          PageHeading(
+            title: context.l10n.teamPending,
+            subtitle: context.isThai ? 'Pending approvals' : null,
+            backTo: '/leave',
+          ),
           if (pending.isEmpty)
             const JamoreCard(child: EmptyMessage())
           else
@@ -948,16 +1067,27 @@ class _ApprovalScreen extends StatelessWidget {
 }
 
 class _FormSection extends StatelessWidget {
-  const _FormSection({required this.title, required this.child});
+  const _FormSection({required this.title, required this.child, this.subtitle});
   final String title;
   final Widget child;
+  final String? subtitle;
   @override
   Widget build(BuildContext context) => JamoreCard(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
+        Text.rich(
+          TextSpan(
+            text: title,
+            children: subtitle == null
+                ? const []
+                : [
+                    TextSpan(
+                      text: ' · $subtitle',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ],
+          ),
           style: const TextStyle(
             fontSize: 12,
             color: JamoreColors.muted,

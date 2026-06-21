@@ -155,6 +155,77 @@ class SectionHeading extends StatelessWidget {
   );
 }
 
+class RequestStatusFilter extends StatelessWidget {
+  const RequestStatusFilter({
+    required this.value,
+    required this.onChanged,
+    super.key,
+  });
+
+  final RequestStatus? value;
+  final ValueChanged<RequestStatus?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    const options = <RequestStatus?>[
+      null,
+      RequestStatus.pending,
+      RequestStatus.approved,
+      RequestStatus.rejected,
+    ];
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8ECF3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: options.map((status) {
+          final selected = value == status;
+          final label = status == null
+              ? context.l10n.all
+              : status == RequestStatus.approved && context.isThai
+              ? 'อนุมัติแล้ว'
+              : context.status(status);
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3),
+              child: Material(
+                color: selected ? Colors.white : Colors.transparent,
+                borderRadius: BorderRadius.circular(9),
+                elevation: selected ? 1 : 0,
+                shadowColor: const Color(0x14000000),
+                child: InkWell(
+                  key: Key('requestFilter_${status?.name ?? 'all'}'),
+                  borderRadius: BorderRadius.circular(9),
+                  onTap: () => onChanged(status),
+                  child: SizedBox(
+                    height: 34,
+                    child: Center(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: selected
+                              ? JamoreColors.ink
+                              : JamoreColors.muted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     required this.label,

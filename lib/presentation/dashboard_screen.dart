@@ -221,115 +221,15 @@ class _DashboardAvatar extends StatelessWidget {
   );
 }
 
-class _WorkHero extends StatelessWidget {
+class _WorkHero extends StatefulWidget {
   const _WorkHero({required this.state});
   final AppState state;
 
   @override
-  Widget build(BuildContext context) {
-    final log = state.todayLog;
-    final working = log?.isWorking ?? false;
-    final finished = log?.clockOut != null;
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [JamoreColors.primary, JamoreColors.primaryDark],
-        ),
-        borderRadius: BorderRadius.circular(26),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x400099CC),
-            blurRadius: 28,
-            offset: Offset(0, 14),
-          ),
-        ],
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final details = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                working
-                    ? context.l10n.workingToday
-                    : finished
-                    ? context.l10n.finished
-                    : context.l10n.notClockedIn,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 5),
-              const _LiveClock(),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on_rounded,
-                    color: Colors.white70,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    child: Text(
-                      context.l10n.officeName,
-                      maxLines: 2,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          );
-          final button = SizedBox(
-            width: constraints.maxWidth > 520 ? 210 : double.infinity,
-            height: 50,
-            child: FilledButton.icon(
-              onPressed: finished
-                  ? null
-                  : () => state.navigate('/worktime/check-in'),
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: JamoreColors.primary,
-              ),
-              icon: Icon(working ? Icons.logout_rounded : Icons.login_rounded),
-              label: Text(
-                working ? context.l10n.clockOut : context.l10n.clockIn,
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
-          );
-          if (constraints.maxWidth > 520) {
-            return Row(
-              children: [
-                Expanded(child: details),
-                const SizedBox(width: 18),
-                button,
-              ],
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [details, const SizedBox(height: 18), button],
-          );
-        },
-      ),
-    );
-  }
+  State<_WorkHero> createState() => _WorkHeroState();
 }
 
-class _LiveClock extends StatefulWidget {
-  const _LiveClock();
-  @override
-  State<_LiveClock> createState() => _LiveClockState();
-}
-
-class _LiveClockState extends State<_LiveClock> {
+class _WorkHeroState extends State<_WorkHero> {
   late Timer _timer;
   DateTime now = DateTime.now();
 
@@ -348,17 +248,229 @@ class _LiveClockState extends State<_LiveClock> {
   }
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    liveRegion: false,
-    label: context.time(now),
-    child: Text(
-      context.time(now),
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 38,
-        fontWeight: FontWeight.w900,
-        letterSpacing: -1,
+  Widget build(BuildContext context) {
+    final log = widget.state.todayLog;
+    final working = log?.isWorking ?? false;
+    final finished = log?.clockOut != null;
+    final elapsed = log?.clockIn == null
+        ? Duration.zero
+        : (log?.clockOut ?? now).difference(log!.clockIn!);
+    final duration = elapsed.isNegative ? Duration.zero : elapsed;
+    final status = working
+        ? '${context.l10n.working} · ${_formatDuration(context, duration)}'
+        : finished
+        ? '${context.l10n.finished} · ${_formatDuration(context, duration)}'
+        : context.l10n.notClockedIn;
+
+    return Container(
+      key: const Key('dashboardWorkHero'),
+      padding: const EdgeInsets.all(22),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [JamoreColors.primary, JamoreColors.primaryDark],
+        ),
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x400099CC),
+            blurRadius: 28,
+            offset: Offset(0, 14),
+          ),
+        ],
       ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          const Positioned(right: -72, top: -72, child: _DecorativeRing()),
+          const Positioned(
+            right: -42,
+            bottom: -82,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Color(0x0FFFFFFF),
+                shape: BoxShape.circle,
+              ),
+              child: SizedBox.square(dimension: 130),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                MaterialLocalizations.of(context).formatFullDate(now),
+                style: const TextStyle(
+                  color: Color(0xD9FFFFFF),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    context.time(now),
+                    key: const Key('dashboardLiveClock'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1.4,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      status,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xD9FFFFFF),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: _WorkTimeSummary(
+                      key: const Key('dashboardClockInSummary'),
+                      label: context.isThai
+                          ? '${context.l10n.checkInTime} · In'
+                          : context.l10n.checkInTime,
+                      value: log?.clockIn == null
+                          ? '— —'
+                          : context.time(log!.clockIn!),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _WorkTimeSummary(
+                      key: const Key('dashboardClockOutSummary'),
+                      label: context.isThai
+                          ? '${context.l10n.checkOutTime} · Out'
+                          : context.l10n.checkOutTime,
+                      value: log?.clockOut == null
+                          ? '— —'
+                          : context.time(log!.clockOut!),
+                      muted: log?.clockOut == null,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                key: const Key('dashboardWorkHeroAction'),
+                width: double.infinity,
+                height: 48,
+                child: FilledButton.icon(
+                  onPressed: finished
+                      ? null
+                      : () => widget.state.navigate('/worktime/check-in'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: JamoreColors.primary,
+                    disabledBackgroundColor: Colors.white.withValues(
+                      alpha: .55,
+                    ),
+                    disabledForegroundColor: JamoreColors.primaryDark,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: const Icon(Icons.schedule_rounded, size: 18),
+                  label: Text(
+                    finished
+                        ? context.l10n.finished
+                        : context.isThai
+                        ? '${working ? context.l10n.clockOut : context.l10n.clockIn} · ${working ? 'Clock out' : 'Clock in'}'
+                        : working
+                        ? context.l10n.clockOut
+                        : context.l10n.clockIn,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDuration(BuildContext context, Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    return context.isThai ? '$hours ชม. $minutes น.' : '${hours}h ${minutes}m';
+  }
+}
+
+class _DecorativeRing extends StatelessWidget {
+  const _DecorativeRing();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 180,
+    height: 180,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(color: const Color(0x14FFFFFF), width: 24),
+    ),
+  );
+}
+
+class _WorkTimeSummary extends StatelessWidget {
+  const _WorkTimeSummary({
+    required this.label,
+    required this.value,
+    this.muted = false,
+    super.key,
+  });
+
+  final String label;
+  final String value;
+  final bool muted;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    decoration: BoxDecoration(
+      color: const Color(0x29FFFFFF),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Color(0xCCFFFFFF),
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 1),
+        Text(
+          value,
+          style: TextStyle(
+            color: muted ? const Color(0x99FFFFFF) : Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     ),
   );
 }

@@ -545,7 +545,7 @@ abstract class AppLocalizations {
   /// No description provided for @newLeaveRequest.
   ///
   /// In th, this message translates to:
-  /// **'คำขอลาใหม่'**
+  /// **'ขอลาใหม่'**
   String get newLeaveRequest;
 
   /// No description provided for @leaveType.

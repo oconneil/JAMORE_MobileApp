@@ -79,7 +79,7 @@
   "pending": "รออนุมัติ",
   "rejected": "ไม่อนุมัติ",
   "cancelled": "ยกเลิกแล้ว",
-  "newLeaveRequest": "คำขอลาใหม่",
+  "newLeaveRequest": "ขอลาใหม่",
   "leaveType": "ประเภทการลา",
   "dateRange": "ช่วงวันที่",
   "fromDate": "จากวันที่",

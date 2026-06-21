@@ -80,6 +80,36 @@ void main() {
     expect(find.byKey(const Key('dashboardAvatarInitials')), findsNothing);
   });
 
+  testWidgets('dashboard work hero matches the clock-in card design', (
+    tester,
+  ) async {
+    final state = await createTestState();
+    await login(state);
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(testApp(state));
+    await tester.pump();
+
+    final hero = find.byKey(const Key('dashboardWorkHero'));
+    final clockIn = find.byKey(const Key('dashboardClockInSummary'));
+    final clockOut = find.byKey(const Key('dashboardClockOutSummary'));
+    final action = find.byKey(const Key('dashboardWorkHeroAction'));
+
+    expect(find.byKey(const Key('dashboardLiveClock')), findsOneWidget);
+    expect(find.textContaining('เข้างาน · In'), findsOneWidget);
+    expect(find.textContaining('ออกงาน · Out'), findsOneWidget);
+    expect(tester.getTopLeft(clockIn).dy, tester.getTopLeft(clockOut).dy);
+    expect(tester.getSize(clockIn).width, tester.getSize(clockOut).width);
+    expect(tester.getSize(action).height, 48);
+    expect(
+      tester.getSize(action).width,
+      closeTo(tester.getSize(hero).width - 44, .01),
+    );
+    expect(find.text('JAMORE HQ — ชั้น 14'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('dashboard quick actions match the compact single-row design', (
     tester,
   ) async {
@@ -216,6 +246,60 @@ void main() {
       } else {
         expect(find.byType(NavigationRail), findsOneWidget);
       }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  for (final destination in <({String route, String designKey})>[
+    (route: '/leave', designKey: 'leaveBalanceCard'),
+    (route: '/overtime', designKey: 'otSummaryHero'),
+  ]) {
+    for (final size in <Size>[
+      const Size(390, 844),
+      const Size(800, 1024),
+      const Size(1280, 900),
+    ]) {
+      testWidgets(
+        '${destination.route} matches its design without layout errors at ${size.width}px',
+        (tester) async {
+          final state = await createTestState();
+          await login(state);
+          await tester.binding.setSurfaceSize(size);
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+
+          await tester.pumpWidget(testApp(state));
+          await tester.pumpAndSettle();
+          state.navigate(destination.route);
+          await tester.pumpAndSettle();
+
+          expect(find.byKey(Key(destination.designKey)), findsOneWidget);
+          expect(find.byKey(const Key('requestFilter_all')), findsOneWidget);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  for (final route in <String>[
+    '/leave/request',
+    '/leave/calendar',
+    '/leave/approvals',
+    '/leave/L-0042',
+    '/overtime/request',
+    '/overtime/OT-0091',
+  ]) {
+    testWidgets('$route has no mobile layout errors', (tester) async {
+      final state = await createTestState();
+      await login(state);
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(testApp(state));
+      await tester.pumpAndSettle();
+      state.navigate(route);
+      await tester.pumpAndSettle();
+
+      expect(state.location, route);
       expect(tester.takeException(), isNull);
     });
   }

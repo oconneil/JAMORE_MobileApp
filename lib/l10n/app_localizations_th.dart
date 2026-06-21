@@ -235,7 +235,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get cancelled => 'ยกเลิกแล้ว';
 
   @override
-  String get newLeaveRequest => 'คำขอลาใหม่';
+  String get newLeaveRequest => 'ขอลาใหม่';
 
   @override
   String get leaveType => 'ประเภทการลา';
