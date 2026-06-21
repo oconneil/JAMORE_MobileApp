@@ -13,6 +13,7 @@ void main() {
       ..configure(
         apiServer: 'https://customer.example.com/',
         accessToken: 'jamore-token',
+        companyId: 'JAMORE-TH',
       );
     final repository = ApiEmployeeRepository(
       JamoreApiClient(

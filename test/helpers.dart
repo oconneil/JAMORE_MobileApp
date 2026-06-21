@@ -148,7 +148,11 @@ class FakeCustomerApiSession implements CustomerApiSession {
   void clear() {}
 
   @override
-  void configure({required String apiServer, required String accessToken}) {}
+  void configure({
+    required String apiServer,
+    required String accessToken,
+    required String companyId,
+  }) {}
 }
 
 Future<bool> login(AppState state) => state.login(

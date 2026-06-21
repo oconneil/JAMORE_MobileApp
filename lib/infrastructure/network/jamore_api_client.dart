@@ -10,8 +10,10 @@ import 'api_exception.dart';
 class JamoreApiConnection implements CustomerApiSession {
   Uri? _apiBaseUri;
   String? _accessToken;
+  String? _companyId;
 
-  bool get isConfigured => _apiBaseUri != null && _accessToken != null;
+  bool get isConfigured =>
+      _apiBaseUri != null && _accessToken != null && _companyId != null;
 
   Uri get apiBaseUri {
     final value = _apiBaseUri;
@@ -25,15 +27,33 @@ class JamoreApiConnection implements CustomerApiSession {
 
   String? get accessToken => _accessToken;
 
+  String get companyId {
+    final value = _companyId;
+    if (value == null) {
+      throw const ApiException(
+        message: 'Jamore customer API is not configured.',
+      );
+    }
+    return value;
+  }
+
   @override
-  void configure({required String apiServer, required String accessToken}) {
+  void configure({
+    required String apiServer,
+    required String accessToken,
+    required String companyId,
+  }) {
     final normalizedServer = apiServer.trim();
     final normalizedToken = accessToken.trim();
+    final normalizedCompanyId = companyId.trim();
     if (normalizedServer.isEmpty) {
       throw const ApiException(message: 'Jamore API server is missing.');
     }
     if (normalizedToken.isEmpty) {
       throw const ApiException(message: 'TokenJamore is missing.');
+    }
+    if (normalizedCompanyId.isEmpty) {
+      throw const ApiException(message: 'Company ID is missing.');
     }
 
     final server = Uri.tryParse(
@@ -48,24 +68,40 @@ class JamoreApiConnection implements CustomerApiSession {
 
     _apiBaseUri = server.resolve('api/');
     _accessToken = normalizedToken;
+    _companyId = normalizedCompanyId;
   }
 
   @override
   void clear() {
     _apiBaseUri = null;
     _accessToken = null;
+    _companyId = null;
   }
 }
 
 /// Use this type in customer feature repositories so it cannot be confused
 /// with the Universe [ApiClient].
 class JamoreApiClient extends ApiClient {
-  JamoreApiClient({
-    required JamoreApiConnection connection,
-    super.client,
-    super.timeout,
-  }) : super(
-         baseUriProvider: () => connection.apiBaseUri,
-         accessTokenProvider: () => connection.accessToken,
-       );
+  JamoreApiClient({required this.connection, super.client, super.timeout})
+    : super(
+        baseUriProvider: () => connection.apiBaseUri,
+        accessTokenProvider: () => connection.accessToken,
+      );
+
+  final JamoreApiConnection connection;
+
+  @override
+  Future<Object?> request(
+    String method,
+    String path, {
+    Object? body,
+    Map<String, Object?>? query,
+    Map<String, String>? headers,
+  }) => super.request(
+    method,
+    path,
+    body: body,
+    query: query,
+    headers: {...?headers, 'x-companyid': connection.companyId},
+  );
 }

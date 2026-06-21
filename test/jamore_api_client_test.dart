@@ -13,6 +13,7 @@ void main() {
       ..configure(
         apiServer: 'https://customer.example.com/',
         accessToken: 'jamore-token',
+        companyId: 'JAMORE-TH',
       );
     final client = JamoreApiClient(
       connection: connection,
@@ -29,6 +30,7 @@ void main() {
       'https://customer.example.com/api/Employee/Get',
     );
     expect(captured.headers['Authorization'], 'Bearer jamore-token');
+    expect(captured.headers['x-companyid'], 'JAMORE-TH');
   });
 
   test('cannot call customer API before company connection is configured', () {

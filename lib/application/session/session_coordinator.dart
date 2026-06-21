@@ -83,6 +83,7 @@ class SessionCoordinator {
       _customerApiSession.configure(
         apiServer: company.jamoreApiServer,
         accessToken: auth.jamoreToken,
+        companyId: companyId,
       );
 
       final user = await _userGateway.getUser(auth.userName);
