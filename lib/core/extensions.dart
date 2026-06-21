@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../data/models.dart';
+import '../domain/entities/hr_models.dart';
 import '../l10n/app_localizations.dart';
 
 extension BuildContextX on BuildContext {

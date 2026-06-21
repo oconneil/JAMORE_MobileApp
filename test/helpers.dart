@@ -1,14 +1,18 @@
-import 'package:jamore/auth/auth_models.dart';
-import 'package:jamore/auth/auth_repository.dart';
-import 'package:jamore/company/company_repository.dart';
-import 'package:jamore/company/company_models.dart';
-import 'package:jamore/data/app_repository.dart';
-import 'package:jamore/data/local_store.dart';
-import 'package:jamore/employee/employee_repository.dart';
-import 'package:jamore/employee/employee_models.dart';
+import 'package:jamore/application/hr/hr_workspace.dart';
+import 'package:jamore/application/ports/customer_api_session.dart';
+import 'package:jamore/application/session/session_coordinator.dart';
+import 'package:jamore/data/repositories/local_app_data_repository.dart';
+import 'package:jamore/domain/entities/auth_session.dart';
+import 'package:jamore/domain/entities/company_details.dart';
+import 'package:jamore/domain/entities/employee_details.dart';
+import 'package:jamore/domain/entities/user_details.dart';
+import 'package:jamore/domain/repositories/auth_gateway.dart';
+import 'package:jamore/domain/repositories/company_gateway.dart';
+import 'package:jamore/domain/repositories/employee_gateway.dart';
+import 'package:jamore/domain/repositories/repository_failure.dart';
+import 'package:jamore/domain/repositories/user_gateway.dart';
+import 'package:jamore/infrastructure/storage/local_store.dart';
 import 'package:jamore/state/app_state.dart';
-import 'package:jamore/user/user_models.dart';
-import 'package:jamore/user/user_repository.dart';
 
 class MemoryStore implements LocalStore {
   Map<String, Object?>? value;
@@ -24,26 +28,11 @@ class MemoryStore implements LocalStore {
 }
 
 class FakeCompanyGateway implements CompanyGateway {
-  String? requestedUserName;
-
-  @override
-  Future<Object?> getUserCompany(String userName) async {
-    requestedUserName = userName;
-
-    return {'status': 'Success', 'value': []};
-  }
-
   @override
   Future<CompanyDetails> getCompany(String companyId) async {
     return CompanyDetails(
       companyId: companyId,
       jamoreApiServer: 'https://customer.example.com/',
-      raw: {
-        'companyID': companyId,
-        'companyNameThai': 'บริษัททดสอบ',
-        'companyNameEng': 'Test Company',
-        'jamoreAPIServer': 'https://customer.example.com/',
-      },
     );
   }
 }
@@ -63,7 +52,6 @@ class FakeUserGateway implements UserGateway {
       employeeId: employeeId,
       defaultLanguage: 'Thai',
       companyId: 'JAMORE-TH',
-      raw: {'userName': userName, 'employeeID': employeeId},
     );
   }
 }
@@ -84,8 +72,6 @@ class FakeEmployeeGateway implements EmployeeGateway {
       positionId: positionId,
       positionNameThai: 'หัวหน้าวิศวกรพัฒนาซอฟต์แวร์',
       positionNameEng: 'Software Development Engineer Leader',
-      raw: {'employeeID': employeeId},
-      displayRaw: const {},
     );
   }
 }
@@ -98,13 +84,20 @@ Future<AppState> createTestState({
   EmployeeGateway? employeeGateway,
 }) async {
   final resolvedClock = clock ?? () => DateTime(2026, 6, 20, 8, 30);
-  final state = AppState(
-    AppRepository(store ?? MemoryStore(), clock: resolvedClock),
-    authGateway ?? FakeAuthGateway(clock: resolvedClock),
-    FakeCompanyGateway(),
-    userGateway ?? FakeUserGateway(),
-    employeeGateway ?? FakeEmployeeGateway(),
+  final resolvedAuth = authGateway ?? FakeAuthGateway(clock: resolvedClock);
+  final workspace = HrWorkspace(
+    LocalAppDataRepository(store ?? MemoryStore(), clock: resolvedClock),
     clock: resolvedClock,
+  );
+  final state = AppState(
+    workspace,
+    SessionCoordinator(
+      authGateway: resolvedAuth,
+      companyGateway: FakeCompanyGateway(),
+      userGateway: userGateway ?? FakeUserGateway(),
+      employeeGateway: employeeGateway ?? FakeEmployeeGateway(),
+      customerApiSession: FakeCustomerApiSession(),
+    ),
   );
   await state.initialize();
   return state;
@@ -128,7 +121,7 @@ class FakeAuthGateway implements AuthGateway {
     required bool rememberMe,
   }) async {
     if (userName != 'nattawut.c' || password != 'jamore123') {
-      throw const AuthException('Invalid credentials');
+      throw const RepositoryFailure('Invalid credentials');
     }
     return session = AuthSession(
       userName: userName,
@@ -148,6 +141,14 @@ class FakeAuthGateway implements AuthGateway {
 
   @override
   Future<AuthSession?> restoreSession() async => session;
+}
+
+class FakeCustomerApiSession implements CustomerApiSession {
+  @override
+  void clear() {}
+
+  @override
+  void configure({required String apiServer, required String accessToken}) {}
 }
 
 Future<bool> login(AppState state) => state.login(

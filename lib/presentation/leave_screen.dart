@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../application/ports/attachment_picker.dart';
 import '../core/extensions.dart';
 import '../core/theme.dart';
-import '../data/attachment_picker.dart';
-import '../data/models.dart';
+import '../domain/entities/hr_models.dart';
 import '../state/app_state.dart';
 import 'common.dart';
 
@@ -270,7 +270,7 @@ class _LeaveRequestScreenState extends State<_LeaveRequestScreen> {
   }
 
   Future<void> _attachment() async {
-    final value = await pickAttachment();
+    final value = await context.read<AttachmentPicker>().pick();
     if (!mounted) return;
     if (value == null) {
       ScaffoldMessenger.of(context).showSnackBar(

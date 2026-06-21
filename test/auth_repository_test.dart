@@ -3,16 +3,16 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:jamore/auth/auth_models.dart';
-import 'package:jamore/auth/auth_repository.dart';
-import 'package:jamore/network/api_client.dart';
+import 'package:jamore/data/repositories/api_auth_repository.dart';
+import 'package:jamore/domain/repositories/repository_failure.dart';
+import 'package:jamore/infrastructure/network/api_client.dart';
 
 void main() {
   test('posts LoginModel and maps the AuthenticateMobile response', () async {
     late http.Request captured;
     final expiry = DateTime.now().toUtc().add(const Duration(days: 1));
     final tokenUniverse = _fakeJwt(expiry);
-    final repository = AuthRepository(
+    final repository = ApiAuthRepository(
       ApiClient(
         baseUri: Uri.parse('https://example.com/api/'),
         client: MockClient((request) async {
@@ -63,7 +63,7 @@ void main() {
   });
 
   test('uses the backend message when Result.Value is null', () async {
-    final repository = AuthRepository(
+    final repository = ApiAuthRepository(
       ApiClient(
         baseUri: Uri.parse('https://example.com/api/'),
         client: MockClient(
@@ -83,7 +83,7 @@ void main() {
       () =>
           repository.login(userName: 'bad', password: 'bad', rememberMe: false),
       throwsA(
-        isA<AuthException>().having(
+        isA<RepositoryFailure>().having(
           (error) => error.message,
           'message',
           'User name or password invalid.',

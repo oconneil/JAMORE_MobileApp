@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:jamore/network/jamore_api_client.dart';
-import 'package:jamore/user/user_repository.dart';
+import 'package:jamore/data/repositories/api_user_repository.dart';
+import 'package:jamore/infrastructure/network/jamore_api_client.dart';
 
 void main() {
   test('calls customer GetUser with TokenJamore', () async {
@@ -14,7 +14,7 @@ void main() {
         apiServer: 'https://customer.example.com/',
         accessToken: 'jamore-token',
       );
-    final repository = UserRepository(
+    final repository = ApiUserRepository(
       JamoreApiClient(
         connection: connection,
         client: MockClient((request) async {

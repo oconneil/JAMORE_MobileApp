@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jamore/data/models.dart';
+import 'package:jamore/domain/entities/hr_models.dart';
 
 import 'helpers.dart';
 
@@ -24,7 +24,6 @@ void main() {
         expect(await login(state), isTrue);
         expect(state.currentUser?.employeeId, 'E2022-084');
         expect(state.currentEmployee?.employeeId, 'E2022-084');
-        expect(state.currentEmployeeResponse, isNotNull);
         expect(state.employeeDisplayName(isThai: true), 'กชวรรณ เอนกลาภ');
         expect(state.employeeDisplayName(isThai: false), 'Kotchawan Aneklap');
         expect(
@@ -51,7 +50,6 @@ void main() {
 
       expect(await login(state), isTrue);
       expect(employeeGateway.requestedEmployeeId, isNull);
-      expect(state.currentEmployeeResponse, isNull);
       expect(state.currentEmployee, isNull);
       expect(state.location, '/dashboard');
     });

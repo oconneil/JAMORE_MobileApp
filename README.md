@@ -49,12 +49,15 @@ flutter run --dart-define=API_BASE_URL=https://staging.example.com/api/
 The customer client is configured only after login and `Company/Get/{CompanyID}` both succeed. Customer feature repositories must depend on `JamoreApiClient`, not the Universe `ApiClient`:
 
 ```dart
-class EmployeeRepository {
-  EmployeeRepository(this._apiClient);
+class ApiEmployeeRepository implements EmployeeGateway {
+  ApiEmployeeRepository(this._apiClient);
 
   final JamoreApiClient _apiClient;
 
-  Future<Object?> getEmployees() => _apiClient.get('Employee/Get');
+  Future<EmployeeDetails> getEmployee(String id) async {
+    final response = await _apiClient.get('Employee/Get/$id');
+    return ApiProfileMappers.employee(response);
+  }
 }
 ```
 
@@ -79,7 +82,7 @@ CI runs format, analysis, unit/widget tests, Web build, and Android build on eac
 
 ## Prototype constraints
 
-- All business data is mock data stored locally. Repository boundaries are ready for an API implementation.
+- All HR business data is currently mock data stored through `AppDataRepository`. A server-backed adapter can replace `LocalAppDataRepository` without changing application or presentation modules.
 - GPS, selfie, and Face ID are simulations by design and request no device permissions.
 - Web provides a real PDF/JPG/PNG picker. Native attachment picking has an adapter boundary but requires a file-picker plugin before production use.
 - The IBM Plex Sans Thai font name and fallbacks are configured; add licensed font files under `assets/fonts/` before production to guarantee identical typography offline.

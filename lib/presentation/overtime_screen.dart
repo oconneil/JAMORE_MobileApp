@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/extensions.dart';
 import '../core/theme.dart';
-import '../data/models.dart';
+import '../domain/entities/hr_models.dart';
 import '../state/app_state.dart';
 import 'common.dart';
 

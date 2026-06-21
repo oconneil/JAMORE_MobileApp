@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:jamore/network/api_client.dart';
-import 'package:jamore/network/api_exception.dart';
+import 'package:jamore/infrastructure/network/api_client.dart';
+import 'package:jamore/infrastructure/network/api_exception.dart';
 
 void main() {
   test('keeps the API path prefix and adds standard headers', () async {
