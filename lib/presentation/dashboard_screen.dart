@@ -16,6 +16,7 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
     final positionName = state.employeePositionName(isThai: context.isThai);
+    final displayName = state.employeeDisplayName(isThai: context.isThai);
     return PageSurface(
       maxWidth: 980,
       child: Column(
@@ -29,11 +30,22 @@ class DashboardScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: JamoreColors.primarySoft,
                   borderRadius: BorderRadius.circular(15),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x240099CC),
+                      blurRadius: 14,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
                 ),
                 alignment: Alignment.center,
-                child: const Text(
-                  'NJ',
-                  style: TextStyle(
+                child: Text(
+                  initialsFromName(
+                    state.employeeDisplayName(isThai: false),
+                    fallback: displayName,
+                  ),
+                  key: const Key('dashboardAvatarInitials'),
+                  style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     color: JamoreColors.primaryDark,
                   ),
@@ -53,7 +65,7 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ),
                     Text(
-                      state.employeeDisplayName(isThai: context.isThai),
+                      displayName,
                       style: const TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w800,

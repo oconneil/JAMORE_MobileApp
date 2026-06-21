@@ -460,4 +460,88 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get fullDay => 'เต็มวัน';
+
+  @override
+  String get profileContact => 'ข้อมูลติดต่อ';
+
+  @override
+  String get profileEmployment => 'ข้อมูลการจ้างงาน';
+
+  @override
+  String get profileSettings => 'การตั้งค่า';
+
+  @override
+  String get profileEmployeeId => 'รหัสพนักงาน';
+
+  @override
+  String get profileDepartment => 'แผนก';
+
+  @override
+  String get profileLevel => 'ระดับ';
+
+  @override
+  String get profileTenure => 'อายุงาน';
+
+  @override
+  String get profileLeaveLeft => 'ลาคงเหลือ';
+
+  @override
+  String get profileOvertimeThisMonth => 'OT เดือนนี้';
+
+  @override
+  String get profileYearsUnit => 'ปี';
+
+  @override
+  String get profileDaysUnit => 'วัน';
+
+  @override
+  String get profileHoursUnit => 'ชม.';
+
+  @override
+  String get profileEmail => 'อีเมล';
+
+  @override
+  String get profilePhone => 'เบอร์โทร';
+
+  @override
+  String get profileWorkplace => 'สถานที่ทำงาน';
+
+  @override
+  String get profileStartDate => 'วันเริ่มงาน';
+
+  @override
+  String get profileEmploymentType => 'ประเภทพนักงาน';
+
+  @override
+  String get profileReportsTo => 'ผู้บังคับบัญชา';
+
+  @override
+  String get profileLanguageHint => 'เลือกภาษาที่แสดงในแอป';
+
+  @override
+  String get profileSecurityPassword => 'ความปลอดภัยและรหัสผ่าน';
+
+  @override
+  String get profileHelpContactHr => 'ช่วยเหลือและติดต่อ HR';
+
+  @override
+  String get profileRoleFallback => 'นักออกแบบผลิตภัณฑ์อาวุโส';
+
+  @override
+  String get profileDesignTeam => 'ทีมดีไซน์';
+
+  @override
+  String get profileSeniorLevel => 'P5 · อาวุโส';
+
+  @override
+  String get profileOffice => 'JAMORE HQ · กรุงเทพฯ';
+
+  @override
+  String get profileStartDateValue => '1 มี.ค. 2022';
+
+  @override
+  String get profileFullTime => 'พนักงานประจำ';
+
+  @override
+  String get profileManager => 'วิภา ศรีสุข';
 }

@@ -461,4 +461,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fullDay => 'Full day';
+
+  @override
+  String get profileContact => 'Contact';
+
+  @override
+  String get profileEmployment => 'Employment';
+
+  @override
+  String get profileSettings => 'Settings';
+
+  @override
+  String get profileEmployeeId => 'Employee ID';
+
+  @override
+  String get profileDepartment => 'Department';
+
+  @override
+  String get profileLevel => 'Level';
+
+  @override
+  String get profileTenure => 'Tenure';
+
+  @override
+  String get profileLeaveLeft => 'Leave left';
+
+  @override
+  String get profileOvertimeThisMonth => 'OT this month';
+
+  @override
+  String get profileYearsUnit => 'yr';
+
+  @override
+  String get profileDaysUnit => 'days';
+
+  @override
+  String get profileHoursUnit => 'hrs';
+
+  @override
+  String get profileEmail => 'Email';
+
+  @override
+  String get profilePhone => 'Phone';
+
+  @override
+  String get profileWorkplace => 'Workplace';
+
+  @override
+  String get profileStartDate => 'Start date';
+
+  @override
+  String get profileEmploymentType => 'Employment type';
+
+  @override
+  String get profileReportsTo => 'Reports to';
+
+  @override
+  String get profileLanguageHint => 'Choose the app display language';
+
+  @override
+  String get profileSecurityPassword => 'Security & password';
+
+  @override
+  String get profileHelpContactHr => 'Help & contact HR';
+
+  @override
+  String get profileRoleFallback => 'Senior Product Designer';
+
+  @override
+  String get profileDesignTeam => 'Design Team';
+
+  @override
+  String get profileSeniorLevel => 'P5 · Senior';
+
+  @override
+  String get profileOffice => 'JAMORE HQ · Bangkok';
+
+  @override
+  String get profileStartDateValue => 'Mar 1, 2022';
+
+  @override
+  String get profileFullTime => 'Full-time';
+
+  @override
+  String get profileManager => 'Wipha Srisuk';
 }

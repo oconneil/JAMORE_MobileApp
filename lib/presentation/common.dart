@@ -6,6 +6,20 @@ import '../domain/entities/hr_models.dart';
 import '../state/app_state.dart';
 import 'package:provider/provider.dart';
 
+String initialsFromName(String value, {required String fallback}) {
+  final words = value
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .toList();
+  if (words.isEmpty) return fallback.characters.take(2).toString();
+  return words
+      .take(2)
+      .map((word) => word.characters.first)
+      .join()
+      .toUpperCase();
+}
+
 class PageSurface extends StatelessWidget {
   const PageSurface({
     required this.child,

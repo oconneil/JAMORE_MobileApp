@@ -38,6 +38,20 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('dashboard avatar uses English employee initials', (
+    tester,
+  ) async {
+    final state = await createTestState();
+    await login(state);
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(testApp(state));
+    await tester.pumpAndSettle();
+
+    expect(find.text('KA'), findsOneWidget);
+    expect(find.text('NJ'), findsNothing);
+  });
+
   testWidgets('invalid login displays localized error', (tester) async {
     final state = await createTestState();
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -99,6 +113,30 @@ void main() {
     expect(find.text('Language'), findsOneWidget);
     expect(find.text('Sign out'), findsOneWidget);
     expect(find.text('Kotchawan Aneklap'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('profile destination opens the designed profile screen', (
+    tester,
+  ) async {
+    final state = await createTestState();
+    await login(state);
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(testApp(state));
+    await tester.pumpAndSettle();
+
+    final profileDestination = find.descendant(
+      of: find.byType(NavigationBar),
+      matching: find.byIcon(Icons.person_rounded),
+    );
+    await tester.tap(profileDestination);
+    await tester.pumpAndSettle();
+
+    expect(state.location, '/profile');
+    expect(find.byKey(const Key('profileHeader')), findsOneWidget);
+    expect(find.byKey(const Key('languageSelector')), findsOneWidget);
+    expect(find.byKey(const Key('signOutButton')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

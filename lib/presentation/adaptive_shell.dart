@@ -23,6 +23,7 @@ class AdaptiveShell extends StatelessWidget {
   ];
 
   int get _selected {
+    if (location.startsWith('/soon/')) return _roots.indexOf('/profile');
     final index = _roots.indexWhere((root) => location.startsWith(root));
     return index < 0 ? 0 : index;
   }

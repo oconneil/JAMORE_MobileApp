@@ -997,6 +997,174 @@ abstract class AppLocalizations {
   /// In th, this message translates to:
   /// **'เต็มวัน'**
   String get fullDay;
+
+  /// No description provided for @profileContact.
+  ///
+  /// In th, this message translates to:
+  /// **'ข้อมูลติดต่อ'**
+  String get profileContact;
+
+  /// No description provided for @profileEmployment.
+  ///
+  /// In th, this message translates to:
+  /// **'ข้อมูลการจ้างงาน'**
+  String get profileEmployment;
+
+  /// No description provided for @profileSettings.
+  ///
+  /// In th, this message translates to:
+  /// **'การตั้งค่า'**
+  String get profileSettings;
+
+  /// No description provided for @profileEmployeeId.
+  ///
+  /// In th, this message translates to:
+  /// **'รหัสพนักงาน'**
+  String get profileEmployeeId;
+
+  /// No description provided for @profileDepartment.
+  ///
+  /// In th, this message translates to:
+  /// **'แผนก'**
+  String get profileDepartment;
+
+  /// No description provided for @profileLevel.
+  ///
+  /// In th, this message translates to:
+  /// **'ระดับ'**
+  String get profileLevel;
+
+  /// No description provided for @profileTenure.
+  ///
+  /// In th, this message translates to:
+  /// **'อายุงาน'**
+  String get profileTenure;
+
+  /// No description provided for @profileLeaveLeft.
+  ///
+  /// In th, this message translates to:
+  /// **'ลาคงเหลือ'**
+  String get profileLeaveLeft;
+
+  /// No description provided for @profileOvertimeThisMonth.
+  ///
+  /// In th, this message translates to:
+  /// **'OT เดือนนี้'**
+  String get profileOvertimeThisMonth;
+
+  /// No description provided for @profileYearsUnit.
+  ///
+  /// In th, this message translates to:
+  /// **'ปี'**
+  String get profileYearsUnit;
+
+  /// No description provided for @profileDaysUnit.
+  ///
+  /// In th, this message translates to:
+  /// **'วัน'**
+  String get profileDaysUnit;
+
+  /// No description provided for @profileHoursUnit.
+  ///
+  /// In th, this message translates to:
+  /// **'ชม.'**
+  String get profileHoursUnit;
+
+  /// No description provided for @profileEmail.
+  ///
+  /// In th, this message translates to:
+  /// **'อีเมล'**
+  String get profileEmail;
+
+  /// No description provided for @profilePhone.
+  ///
+  /// In th, this message translates to:
+  /// **'เบอร์โทร'**
+  String get profilePhone;
+
+  /// No description provided for @profileWorkplace.
+  ///
+  /// In th, this message translates to:
+  /// **'สถานที่ทำงาน'**
+  String get profileWorkplace;
+
+  /// No description provided for @profileStartDate.
+  ///
+  /// In th, this message translates to:
+  /// **'วันเริ่มงาน'**
+  String get profileStartDate;
+
+  /// No description provided for @profileEmploymentType.
+  ///
+  /// In th, this message translates to:
+  /// **'ประเภทพนักงาน'**
+  String get profileEmploymentType;
+
+  /// No description provided for @profileReportsTo.
+  ///
+  /// In th, this message translates to:
+  /// **'ผู้บังคับบัญชา'**
+  String get profileReportsTo;
+
+  /// No description provided for @profileLanguageHint.
+  ///
+  /// In th, this message translates to:
+  /// **'เลือกภาษาที่แสดงในแอป'**
+  String get profileLanguageHint;
+
+  /// No description provided for @profileSecurityPassword.
+  ///
+  /// In th, this message translates to:
+  /// **'ความปลอดภัยและรหัสผ่าน'**
+  String get profileSecurityPassword;
+
+  /// No description provided for @profileHelpContactHr.
+  ///
+  /// In th, this message translates to:
+  /// **'ช่วยเหลือและติดต่อ HR'**
+  String get profileHelpContactHr;
+
+  /// No description provided for @profileRoleFallback.
+  ///
+  /// In th, this message translates to:
+  /// **'นักออกแบบผลิตภัณฑ์อาวุโส'**
+  String get profileRoleFallback;
+
+  /// No description provided for @profileDesignTeam.
+  ///
+  /// In th, this message translates to:
+  /// **'ทีมดีไซน์'**
+  String get profileDesignTeam;
+
+  /// No description provided for @profileSeniorLevel.
+  ///
+  /// In th, this message translates to:
+  /// **'P5 · อาวุโส'**
+  String get profileSeniorLevel;
+
+  /// No description provided for @profileOffice.
+  ///
+  /// In th, this message translates to:
+  /// **'JAMORE HQ · กรุงเทพฯ'**
+  String get profileOffice;
+
+  /// No description provided for @profileStartDateValue.
+  ///
+  /// In th, this message translates to:
+  /// **'1 มี.ค. 2022'**
+  String get profileStartDateValue;
+
+  /// No description provided for @profileFullTime.
+  ///
+  /// In th, this message translates to:
+  /// **'พนักงานประจำ'**
+  String get profileFullTime;
+
+  /// No description provided for @profileManager.
+  ///
+  /// In th, this message translates to:
+  /// **'วิภา ศรีสุข'**
+  String get profileManager;
 }
 
 class _AppLocalizationsDelegate
