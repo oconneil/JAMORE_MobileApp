@@ -40,10 +40,17 @@ class FakeCompanyGateway implements CompanyGateway {
 }
 
 class FakeUserGateway implements UserGateway {
-  FakeUserGateway({this.employeeId = 'E2022-084'});
+  FakeUserGateway({
+    this.employeeId = 'E2022-084',
+    this.defaultLanguage = 'Thai',
+    this.updateFailure,
+  });
 
   final String? employeeId;
+  final String? defaultLanguage;
+  final String? updateFailure;
   String? requestedUserName;
+  String? updatedDefaultLanguage;
 
   @override
   Future<UserDetails> getUser(String userName) async {
@@ -52,8 +59,29 @@ class FakeUserGateway implements UserGateway {
       id: 'user-id',
       userName: userName,
       employeeId: employeeId,
-      defaultLanguage: 'Thai',
+      defaultLanguage: defaultLanguage,
       companyId: 'JAMORE-TH',
+    );
+  }
+
+  @override
+  Future<UserDetails> updateDefaultLanguage({
+    required UserDetails user,
+    required String defaultLanguage,
+  }) async {
+    if (updateFailure != null) throw RepositoryFailure(updateFailure!);
+    updatedDefaultLanguage = defaultLanguage;
+    return UserDetails(
+      id: user.id,
+      userName: user.userName,
+      email: user.email,
+      userNameThai: user.userNameThai,
+      userNameEng: user.userNameEng,
+      employeeId: user.employeeId,
+      userGroupType: user.userGroupType,
+      defaultLanguage: defaultLanguage,
+      companyId: user.companyId,
+      inactive: user.inactive,
     );
   }
 }

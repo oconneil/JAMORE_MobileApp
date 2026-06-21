@@ -896,31 +896,49 @@ class _LanguageSelector extends StatelessWidget {
         children: [
           Expanded(
             child: _LanguageOption(
+              key: const Key('thaiLanguageOption'),
               flag: '🇹🇭',
               title: context.l10n.thai,
               subtitle: 'Thai',
               selected: state.data.localeCode == 'th',
-              onTap: () => state.setLocale('th'),
+              onTap: state.isUpdatingLanguage
+                  ? null
+                  : () => _setLanguage(context, 'th'),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: _LanguageOption(
+              key: const Key('englishLanguageOption'),
               flag: '🇬🇧',
               title: context.l10n.english,
               subtitle: context.isThai ? 'อังกฤษ' : 'English',
               selected: state.data.localeCode == 'en',
-              onTap: () => state.setLocale('en'),
+              onTap: state.isUpdatingLanguage
+                  ? null
+                  : () => _setLanguage(context, 'en'),
             ),
           ),
         ],
       ),
     ],
   );
+
+  Future<void> _setLanguage(BuildContext context, String code) async {
+    final updated = await state.setLocale(code);
+    if (!context.mounted || updated) return;
+    final message = state.languageUpdateError;
+    if (message != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
 }
 
 class _LanguageOption extends StatelessWidget {
   const _LanguageOption({
+    super.key,
     required this.flag,
     required this.title,
     required this.subtitle,
@@ -932,7 +950,7 @@ class _LanguageOption extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Material(

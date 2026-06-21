@@ -125,7 +125,8 @@ void main() {
   }
 
   testWidgets('language selection updates the full app', (tester) async {
-    final state = await createTestState();
+    final userGateway = FakeUserGateway();
+    final state = await createTestState(userGateway: userGateway);
     await login(state);
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -135,9 +136,10 @@ void main() {
     state.navigate('/profile');
     await tester.pumpAndSettle();
 
-    await state.setLocale('en');
+    await tester.tap(find.byKey(const Key('englishLanguageOption')));
     await tester.pumpAndSettle();
 
+    expect(userGateway.updatedDefaultLanguage, 'English');
     expect(find.text('Language'), findsOneWidget);
     expect(find.text('Sign out'), findsOneWidget);
     expect(find.text('Kotchawan Aneklap'), findsOneWidget);
@@ -166,8 +168,8 @@ void main() {
     expect(find.byKey(const Key('profileHeader')), findsOneWidget);
     expect(find.text('วิศวกรรมซอฟต์แวร์'), findsOneWidget);
     expect(find.text('ระดับ'), findsNothing);
-    expect(find.text('4ปี'), findsOneWidget);
-    expect(find.text('2เดือน 2วัน'), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
+    expect(find.text('ปี 2เดือน 2วัน'), findsOneWidget);
     expect(find.byKey(const Key('languageSelector')), findsOneWidget);
     expect(find.byKey(const Key('signOutButton')), findsOneWidget);
     expect(tester.takeException(), isNull);

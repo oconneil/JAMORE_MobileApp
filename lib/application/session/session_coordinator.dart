@@ -118,6 +118,22 @@ class SessionCoordinator {
     _customerApiSession.clear();
   }
 
+  Future<UserDetails> updateDefaultLanguage({
+    required UserDetails user,
+    required String defaultLanguage,
+  }) async {
+    try {
+      return await _userGateway.updateDefaultLanguage(
+        user: user,
+        defaultLanguage: defaultLanguage,
+      );
+    } on RepositoryFailure catch (error) {
+      throw SessionFailure(error.message, cause: error);
+    } on Object catch (error) {
+      throw SessionFailure('Unable to update language.', cause: error);
+    }
+  }
+
   Future<Uint8List?> _loadEmployeeImage(EmployeeDetails? employee) async {
     final imageFile = employee?.imageFile?.trim();
     if (imageFile == null || imageFile.isEmpty) return null;

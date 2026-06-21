@@ -62,6 +62,47 @@ void main() {
       expect(state.location, '/dashboard');
     });
 
+    test('uses the user default language after login', () async {
+      final englishState = await createTestState(
+        userGateway: FakeUserGateway(defaultLanguage: 'English'),
+      );
+      expect(await login(englishState), isTrue);
+      expect(englishState.locale.languageCode, 'en');
+
+      final thaiState = await createTestState(
+        userGateway: FakeUserGateway(defaultLanguage: 'Thai'),
+      );
+      await thaiState.setLocale('en');
+      expect(await login(thaiState), isTrue);
+      expect(thaiState.locale.languageCode, 'th');
+    });
+
+    test('updates the user profile before changing locale', () async {
+      final userGateway = FakeUserGateway(defaultLanguage: 'Thai');
+      final state = await createTestState(userGateway: userGateway);
+      expect(await login(state), isTrue);
+
+      expect(await state.setLocale('en'), isTrue);
+
+      expect(userGateway.updatedDefaultLanguage, 'English');
+      expect(state.currentUser?.defaultLanguage, 'English');
+      expect(state.locale.languageCode, 'en');
+    });
+
+    test('keeps the current locale when profile update fails', () async {
+      final state = await createTestState(
+        userGateway: FakeUserGateway(updateFailure: 'Update failed.'),
+      );
+      expect(await login(state), isTrue);
+
+      expect(await state.setLocale('en'), isFalse);
+
+      expect(state.locale.languageCode, 'th');
+      expect(state.currentUser?.defaultLanguage, 'Thai');
+      expect(state.languageUpdateError, 'Update failed.');
+      expect(state.isUpdatingLanguage, isFalse);
+    });
+
     test('hides position when employee PositionID is missing', () async {
       final state = await createTestState(
         employeeGateway: FakeEmployeeGateway(positionId: null),

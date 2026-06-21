@@ -22,6 +22,8 @@ class AppState extends ChangeNotifier {
   bool initialized = false;
   String location = '/login';
   String? loginError;
+  String? languageUpdateError;
+  bool isUpdatingLanguage = false;
 
   DemoData get data => _workspace.data;
   Locale get locale => Locale(data.localeCode);
@@ -110,10 +112,35 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setLocale(String code) async {
-    if (code == data.localeCode) return;
-    await _workspace.setLocale(code);
+  Future<bool> setLocale(String code) async {
+    if (code == data.localeCode) return true;
+    final defaultLanguage = _defaultLanguage(code);
+    if (defaultLanguage == null || isUpdatingLanguage) return false;
+
+    final user = currentUser;
+    if (user == null) {
+      await _workspace.setLocale(code);
+      notifyListeners();
+      return true;
+    }
+
+    languageUpdateError = null;
+    isUpdatingLanguage = true;
     notifyListeners();
+    try {
+      currentUser = await _sessionCoordinator.updateDefaultLanguage(
+        user: user,
+        defaultLanguage: defaultLanguage,
+      );
+      await _workspace.setLocale(code);
+      return true;
+    } on SessionFailure catch (error) {
+      languageUpdateError = error.message;
+      return false;
+    } finally {
+      isUpdatingLanguage = false;
+      notifyListeners();
+    }
   }
 
   void navigate(String next) {
@@ -215,4 +242,10 @@ class AppState extends ChangeNotifier {
     if (normalized == 'en' || normalized.startsWith('eng')) return 'en';
     return null;
   }
+
+  static String? _defaultLanguage(String code) => switch (code) {
+    'th' => 'Thai',
+    'en' => 'English',
+    _ => null,
+  };
 }
