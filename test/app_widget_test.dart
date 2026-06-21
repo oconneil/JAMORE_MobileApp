@@ -200,4 +200,34 @@ void main() {
     expect(find.byKey(const Key('profileAvatarInitials')), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('profile leave balance cycles through leave types', (
+    tester,
+  ) async {
+    final state = await createTestState();
+    await login(state);
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(testApp(state));
+    await tester.pumpAndSettle();
+
+    state.navigate('/profile');
+    await tester.pumpAndSettle();
+
+    expect(find.text('ลาพักร้อน'), findsOneWidget);
+    expect(find.text('วัน · 0 ชม.'), findsOneWidget);
+    expect(find.byIcon(Icons.event_available_outlined), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('profileLeaveCarousel')));
+    await tester.pump(const Duration(milliseconds: 520));
+
+    expect(find.text('ลาป่วย'), findsOneWidget);
+    expect(find.byIcon(Icons.event_available_outlined), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 3500));
+    await tester.pump(const Duration(milliseconds: 520));
+
+    expect(find.text('ลากิจ'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

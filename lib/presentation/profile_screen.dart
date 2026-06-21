@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -28,7 +29,6 @@ class ProfileScreen extends StatelessWidget {
     final position = state.employeePositionName(isThai: isThai);
     final department = state.employeeDepartmentName(isThai: isThai);
     final tenure = state.employeeTenure;
-    final annualLeave = state.balanceFor(LeaveKind.annual).remaining;
     final overtimeHours = state.data.overtimeRequests.fold<double>(
       0,
       (total, request) => total + request.hours,
@@ -72,12 +72,8 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _StatTile(
-                  icon: Icons.wb_sunny_outlined,
-                  value: _number(annualLeave),
-                  unit: context.l10n.profileDaysUnit,
-                  label: context.l10n.profileLeaveLeft,
-                  color: const Color(0xFF3B82F6),
+                child: _CyclingLeaveStatTile(
+                  balances: state.data.leaveBalances,
                 ),
               ),
               const SizedBox(width: 10),
@@ -562,6 +558,27 @@ class _StatTile extends StatelessWidget {
   final Color color;
 
   @override
+  Widget build(BuildContext context) => _StatTileFrame(
+    icon: icon,
+    color: color,
+    child: _StatTileContent(value: value, unit: unit, label: label),
+  );
+}
+
+class _StatTileFrame extends StatelessWidget {
+  const _StatTileFrame({
+    required this.icon,
+    required this.color,
+    required this.child,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final Color color;
+  final Widget child;
+  final Widget? trailing;
+
+  @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
@@ -572,60 +589,225 @@ class _StatTile extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: .09),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: color, size: 18),
-        ),
-        const SizedBox(height: 10),
         Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 22,
-                height: 1,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -.5,
+            Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: .09),
+                borderRadius: BorderRadius.circular(10),
               ),
+              child: Icon(icon, color: color, size: 18),
             ),
-            const SizedBox(width: 3),
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 1),
-                child: Text(
-                  unit,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontSize: 10,
-                  ),
-                ),
-              ),
-            ),
+            if (trailing != null) ...[const Spacer(), trailing!],
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: JamoreColors.muted,
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        const SizedBox(height: 10),
+        child,
       ],
     ),
   );
+}
+
+class _StatTileContent extends StatelessWidget {
+  const _StatTileContent({
+    required this.value,
+    required this.unit,
+    required this.label,
+  });
+
+  final String value;
+  final String unit;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 22,
+              height: 1,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -.5,
+            ),
+          ),
+          const SizedBox(width: 3),
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 1),
+              child: Text(
+                unit,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 4),
+      Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: JamoreColors.muted,
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ],
+  );
+}
+
+class _CyclingLeaveStatTile extends StatefulWidget {
+  const _CyclingLeaveStatTile({required this.balances});
+
+  final List<LeaveBalance> balances;
+
+  @override
+  State<_CyclingLeaveStatTile> createState() => _CyclingLeaveStatTileState();
+}
+
+class _CyclingLeaveStatTileState extends State<_CyclingLeaveStatTile> {
+  static const _rotationInterval = Duration(milliseconds: 3500);
+  static const _animationDuration = Duration(milliseconds: 520);
+  static const _hoursPerWorkingDay = 8;
+  static const _baseColor = Color(0xFF3B82F6);
+
+  Timer? _timer;
+  int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  @override
+  void didUpdateWidget(covariant _CyclingLeaveStatTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.balances.length != widget.balances.length) {
+      _index = widget.balances.isEmpty
+          ? 0
+          : _index.clamp(0, widget.balances.length - 1);
+      _startTimer();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    if (widget.balances.length < 2) return;
+    _timer = Timer.periodic(_rotationInterval, (_) => _showNext());
+  }
+
+  void _showNext() {
+    if (!mounted || widget.balances.length < 2) return;
+    setState(() => _index = (_index + 1) % widget.balances.length);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.balances.isEmpty) {
+      return _StatTile(
+        icon: Icons.event_available_outlined,
+        value: '-',
+        unit:
+            '${context.l10n.profileDaysUnit} · '
+            '- ${context.l10n.profileHoursUnit}',
+        label: context.l10n.profileLeaveLeft,
+        color: _baseColor,
+      );
+    }
+
+    final balance = widget.balances[_index];
+    final totalHours = (balance.remaining * _hoursPerWorkingDay).round();
+    final remainingDays = totalHours ~/ _hoursPerWorkingDay;
+    final remainingHours = totalHours % _hoursPerWorkingDay;
+    final unit =
+        '${context.l10n.profileDaysUnit} · '
+        '$remainingHours ${context.l10n.profileHoursUnit}';
+
+    return Semantics(
+      button: widget.balances.length > 1,
+      liveRegion: true,
+      label:
+          '${context.leaveKind(balance.kind)}: '
+          '$remainingDays ${context.l10n.profileDaysUnit} '
+          '$remainingHours ${context.l10n.profileHoursUnit}',
+      child: GestureDetector(
+        key: const Key('profileLeaveCarousel'),
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.balances.length > 1
+            ? () {
+                _showNext();
+                _startTimer();
+              }
+            : null,
+        child: _StatTileFrame(
+          icon: Icons.event_available_outlined,
+          color: _baseColor,
+          trailing: Row(
+            children: List.generate(
+              widget.balances.length,
+              (dotIndex) => AnimatedContainer(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeInOut,
+                width: dotIndex == _index ? 9 : 3,
+                height: 3,
+                margin: const EdgeInsets.only(left: 3),
+                decoration: BoxDecoration(
+                  color: dotIndex == _index
+                      ? _baseColor
+                      : const Color(0xFFD5DBE5),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+          ),
+          child: ClipRect(
+            child: AnimatedSwitcher(
+              duration: _animationDuration,
+              switchInCurve: Curves.easeInOutCubic,
+              switchOutCurve: Curves.easeInOutCubic,
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, .16),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              ),
+              child: KeyedSubtree(
+                key: ValueKey(balance.kind),
+                child: _StatTileContent(
+                  value: remainingDays.toString(),
+                  unit: unit,
+                  label: context.leaveKind(balance.kind),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _ProfileSection extends StatelessWidget {
