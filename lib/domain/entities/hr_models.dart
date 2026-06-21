@@ -2,6 +2,71 @@ enum RequestStatus { approved, pending, rejected, cancelled }
 
 enum LeaveKind { annual, sick, personal, maternity }
 
+enum QuickActionId {
+  leave,
+  overtime,
+  shift,
+  payslip,
+  teamCalendar,
+  holidays,
+  expense,
+  announcements,
+}
+
+class QuickActionPreference {
+  const QuickActionPreference({
+    required this.id,
+    required this.visible,
+    required this.deleted,
+  });
+
+  final QuickActionId id;
+  final bool visible;
+  final bool deleted;
+
+  QuickActionPreference copyWith({bool? visible, bool? deleted}) =>
+      QuickActionPreference(
+        id: id,
+        visible: visible ?? this.visible,
+        deleted: deleted ?? this.deleted,
+      );
+}
+
+const defaultQuickActionPreferences = <QuickActionPreference>[
+  QuickActionPreference(id: QuickActionId.leave, visible: true, deleted: false),
+  QuickActionPreference(
+    id: QuickActionId.overtime,
+    visible: true,
+    deleted: false,
+  ),
+  QuickActionPreference(id: QuickActionId.shift, visible: true, deleted: false),
+  QuickActionPreference(
+    id: QuickActionId.payslip,
+    visible: true,
+    deleted: false,
+  ),
+  QuickActionPreference(
+    id: QuickActionId.teamCalendar,
+    visible: false,
+    deleted: false,
+  ),
+  QuickActionPreference(
+    id: QuickActionId.holidays,
+    visible: false,
+    deleted: false,
+  ),
+  QuickActionPreference(
+    id: QuickActionId.expense,
+    visible: false,
+    deleted: false,
+  ),
+  QuickActionPreference(
+    id: QuickActionId.announcements,
+    visible: false,
+    deleted: false,
+  ),
+];
+
 class AttachmentMeta {
   const AttachmentMeta({
     required this.name,
@@ -195,6 +260,7 @@ class DemoData {
     required this.overtimeRequests,
     required this.teamApprovals,
     required this.workLogs,
+    required this.quickActions,
   });
 
   final String localeCode;
@@ -206,6 +272,7 @@ class DemoData {
   final List<OvertimeRequest> overtimeRequests;
   final List<TeamApproval> teamApprovals;
   final List<WorkLog> workLogs;
+  final List<QuickActionPreference> quickActions;
 
   DemoData copyWith({
     String? localeCode,
@@ -217,6 +284,7 @@ class DemoData {
     List<OvertimeRequest>? overtimeRequests,
     List<TeamApproval>? teamApprovals,
     List<WorkLog>? workLogs,
+    List<QuickActionPreference>? quickActions,
   }) => DemoData(
     localeCode: localeCode ?? this.localeCode,
     rememberMe: rememberMe ?? this.rememberMe,
@@ -227,5 +295,6 @@ class DemoData {
     overtimeRequests: overtimeRequests ?? this.overtimeRequests,
     teamApprovals: teamApprovals ?? this.teamApprovals,
     workLogs: workLogs ?? this.workLogs,
+    quickActions: quickActions ?? this.quickActions,
   );
 }

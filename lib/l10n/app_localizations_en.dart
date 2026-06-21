@@ -100,6 +100,66 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quickActions => 'Quick actions';
 
   @override
+  String get manageQuickActions => 'Manage quick actions';
+
+  @override
+  String get manage => 'Manage';
+
+  @override
+  String get quickActionsDashboardPreview => 'Home preview';
+
+  @override
+  String quickActionsShownCount(int count) {
+    return 'Showing $count actions';
+  }
+
+  @override
+  String get quickActionsEmpty =>
+      'No actions are visible — use a switch below to show one';
+
+  @override
+  String get quickActionsAdd => 'Add quick actions';
+
+  @override
+  String get quickActionsAll => 'All actions';
+
+  @override
+  String get quickActionsAllHint => 'Show, hide, or remove';
+
+  @override
+  String get quickActionsRemoved => 'Removed actions';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get quickActionLeave => 'Leave';
+
+  @override
+  String get quickActionOvertime => 'Overtime';
+
+  @override
+  String get quickActionShift => 'Shift';
+
+  @override
+  String get quickActionPayslip => 'Payslip';
+
+  @override
+  String get quickActionTeam => 'Team';
+
+  @override
+  String get quickActionHolidays => 'Holidays';
+
+  @override
+  String get quickActionExpense => 'Expense';
+
+  @override
+  String get quickActionNews => 'News';
+
+  @override
   String get requestLeave => 'Request leave';
 
   @override

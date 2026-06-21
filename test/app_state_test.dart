@@ -188,5 +188,51 @@ void main() {
       expect(updated.decisionReason, 'Capacity');
       expect(updated.decidedAt, isNotNull);
     });
+
+    test('persists quick action visibility and removal preferences', () async {
+      final store = MemoryStore();
+      final state = await createTestState(store: store);
+
+      await state.setQuickActionVisibility(
+        QuickActionId.teamCalendar,
+        visible: true,
+      );
+      await state.removeQuickAction(QuickActionId.payslip);
+
+      final restored = await createTestState(store: store);
+      final team = restored.quickActions.singleWhere(
+        (item) => item.id == QuickActionId.teamCalendar,
+      );
+      final payslip = restored.quickActions.singleWhere(
+        (item) => item.id == QuickActionId.payslip,
+      );
+
+      expect(team.visible, isTrue);
+      expect(team.deleted, isFalse);
+      expect(payslip.visible, isFalse);
+      expect(payslip.deleted, isTrue);
+
+      await restored.restoreQuickAction(QuickActionId.payslip);
+      expect(
+        restored.quickActions
+            .singleWhere((item) => item.id == QuickActionId.payslip)
+            .visible,
+        isTrue,
+      );
+
+      await restored.resetQuickActions();
+      expect(
+        restored.quickActions
+            .singleWhere((item) => item.id == QuickActionId.teamCalendar)
+            .visible,
+        isFalse,
+      );
+      expect(
+        restored.quickActions
+            .singleWhere((item) => item.id == QuickActionId.payslip)
+            .deleted,
+        isFalse,
+      );
+    });
   });
 }

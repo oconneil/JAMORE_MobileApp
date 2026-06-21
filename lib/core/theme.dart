@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 abstract final class JamoreColors {
   static const primary = Color(0xFF0099CC);
   static const primaryDark = Color(0xFF007FA8);
+
   /// Soft brand tint for chips, tonal buttons, and avatars.
   static const primarySoft = Color(0xFFDEF3FA);
   static const canvas = Color(0xFFF4F6FA);

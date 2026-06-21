@@ -80,6 +80,102 @@ void main() {
     expect(find.byKey(const Key('dashboardAvatarInitials')), findsNothing);
   });
 
+  testWidgets('dashboard quick actions match the compact single-row design', (
+    tester,
+  ) async {
+    final state = await createTestState();
+    await login(state);
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(testApp(state));
+    await tester.pumpAndSettle();
+
+    final scrollView = tester.widget<SingleChildScrollView>(
+      find.byKey(const Key('quickActionsScroll')),
+    );
+    final scrollable = find.descendant(
+      of: find.byKey(const Key('quickActionsScroll')),
+      matching: find.byType(Scrollable),
+    );
+    final position = tester.state<ScrollableState>(scrollable).position;
+    final tiles = [
+      find.byKey(const Key('quickActionTile_leave')),
+      find.byKey(const Key('quickActionTile_overtime')),
+      find.byKey(const Key('quickActionTile_shift')),
+      find.byKey(const Key('quickActionTile_payslip')),
+    ];
+
+    expect(scrollView.scrollDirection, Axis.horizontal);
+    expect(position.maxScrollExtent, 0);
+    expect(
+      tiles.map((tile) => tester.getTopLeft(tile).dy).toSet(),
+      hasLength(1),
+    );
+    for (final tile in tiles) {
+      expect(tester.getSize(tile), const Size(82, 82));
+    }
+    expect(find.byKey(const Key('manageQuickActionsButton')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'quick action manager updates the dashboard and enables horizontal scroll',
+    (tester) async {
+      final state = await createTestState();
+      await login(state);
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(testApp(state));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('manageQuickActionsButton')));
+      await tester.pumpAndSettle();
+
+      expect(state.location, '/dashboard/quick-actions');
+      expect(find.text('จัดการเมนูด่วน'), findsOneWidget);
+      expect(find.textContaining('ตัวอย่างบนหน้าหลัก'), findsOneWidget);
+
+      final teamSwitch = find.byKey(
+        const Key('quickActionVisibility_teamCalendar'),
+      );
+      await tester.ensureVisible(teamSwitch);
+      await tester.tap(teamSwitch);
+      await tester.pumpAndSettle();
+
+      expect(
+        state.quickActions
+            .singleWhere((item) => item.id.name == 'teamCalendar')
+            .visible,
+        isTrue,
+      );
+
+      state.navigate('/dashboard');
+      await tester.pumpAndSettle();
+
+      final scrollable = find.descendant(
+        of: find.byKey(const Key('quickActionsScroll')),
+        matching: find.byType(Scrollable),
+      );
+      final position = tester.state<ScrollableState>(scrollable).position;
+      expect(
+        find.byKey(const Key('quickActionTile_teamCalendar')),
+        findsOneWidget,
+      );
+      expect(position.maxScrollExtent, greaterThan(0));
+
+      await tester.drag(
+        find.byKey(const Key('quickActionsScroll')),
+        const Offset(-200, 0),
+      );
+      await tester.pumpAndSettle();
+
+      expect(position.pixels, greaterThan(0));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('invalid login displays localized error', (tester) async {
     final state = await createTestState();
     await tester.binding.setSurfaceSize(const Size(390, 844));

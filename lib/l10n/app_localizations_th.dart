@@ -97,7 +97,67 @@ class AppLocalizationsTh extends AppLocalizations {
   String get clockOut => 'ลงเวลาออกงาน';
 
   @override
-  String get quickActions => 'ทางลัด';
+  String get quickActions => 'เมนูด่วน';
+
+  @override
+  String get manageQuickActions => 'จัดการเมนูด่วน';
+
+  @override
+  String get manage => 'จัดการ';
+
+  @override
+  String get quickActionsDashboardPreview => 'ตัวอย่างบนหน้าหลัก';
+
+  @override
+  String quickActionsShownCount(int count) {
+    return 'แสดง $count เมนู';
+  }
+
+  @override
+  String get quickActionsEmpty =>
+      'ยังไม่มีเมนูที่แสดง — เปิดสวิตช์ด้านล่างเพื่อแสดง';
+
+  @override
+  String get quickActionsAdd => 'เพิ่มเมนูด่วน';
+
+  @override
+  String get quickActionsAll => 'เมนูทั้งหมด';
+
+  @override
+  String get quickActionsAllHint => 'เปิด/ปิด หรือลบ';
+
+  @override
+  String get quickActionsRemoved => 'เมนูที่ลบแล้ว';
+
+  @override
+  String get restore => 'กู้คืน';
+
+  @override
+  String get remove => 'ลบ';
+
+  @override
+  String get quickActionLeave => 'ขอลา';
+
+  @override
+  String get quickActionOvertime => 'ขอ OT';
+
+  @override
+  String get quickActionShift => 'กะงาน';
+
+  @override
+  String get quickActionPayslip => 'สลิป';
+
+  @override
+  String get quickActionTeam => 'ปฏิทินทีม';
+
+  @override
+  String get quickActionHolidays => 'วันหยุด';
+
+  @override
+  String get quickActionExpense => 'เบิกเงิน';
+
+  @override
+  String get quickActionNews => 'ประกาศ';
 
   @override
   String get requestLeave => 'ขอลา';

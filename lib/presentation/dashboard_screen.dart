@@ -9,6 +9,7 @@ import '../core/theme.dart';
 import '../domain/entities/hr_models.dart';
 import '../state/app_state.dart';
 import 'common.dart';
+import 'quick_actions.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -85,35 +86,7 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 18),
           _WorkHero(state: state),
           const SizedBox(height: 22),
-          SectionHeading(title: context.l10n.quickActions),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _QuickAction(
-                icon: Icons.event_available_rounded,
-                label: context.l10n.requestLeave,
-                color: const Color(0xFF1D4ED8),
-                background: const Color(0xFFDBEAFE),
-                onTap: () => state.navigate('/leave/request'),
-              ),
-              _QuickAction(
-                icon: Icons.more_time_rounded,
-                label: context.l10n.requestOt,
-                color: const Color(0xFFB45309),
-                background: const Color(0xFFFEF3C7),
-                onTap: () => state.navigate('/overtime/request'),
-              ),
-              _QuickAction(
-                icon: Icons.schedule_rounded,
-                label: context.l10n.shift,
-                color: const Color(0xFF15803D),
-                background: const Color(0xFFDCFCE7),
-                onTap: () => state.navigate('/worktime'),
-              ),
-            ],
-          ),
+          DashboardQuickActions(state: state),
           const SizedBox(height: 24),
           SectionHeading(
             title: context.l10n.leaveBalance,
@@ -385,58 +358,6 @@ class _LiveClockState extends State<_LiveClock> {
         fontSize: 38,
         fontWeight: FontWeight.w900,
         letterSpacing: -1,
-      ),
-    ),
-  );
-}
-
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.background,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String label;
-  final Color color;
-  final Color background;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 150,
-    height: 74,
-    child: Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: background,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color),
-              ),
-              const SizedBox(width: 9),
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     ),
   );

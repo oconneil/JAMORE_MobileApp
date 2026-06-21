@@ -50,6 +50,13 @@ class HrWorkspace {
     await _persist();
   }
 
+  Future<void> updateQuickActions(
+    List<QuickActionPreference> quickActions,
+  ) async {
+    data = data.copyWith(quickActions: quickActions);
+    await _persist();
+  }
+
   Future<LeaveRequest> submitLeave({
     required LeaveKind kind,
     required DateTime start,

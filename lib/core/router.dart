@@ -80,6 +80,9 @@ class JamoreRouterDelegate extends RouterDelegate<JamorePath>
 }
 
 String parentLocation(String location) {
+  if (location.startsWith('/dashboard/') && location != '/dashboard') {
+    return '/dashboard';
+  }
   if (location.startsWith('/leave/') && location != '/leave') return '/leave';
   if (location.startsWith('/overtime/') && location != '/overtime') {
     return '/overtime';

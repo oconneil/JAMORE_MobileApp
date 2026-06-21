@@ -275,8 +275,122 @@ abstract class AppLocalizations {
   /// No description provided for @quickActions.
   ///
   /// In th, this message translates to:
-  /// **'ทางลัด'**
+  /// **'เมนูด่วน'**
   String get quickActions;
+
+  /// No description provided for @manageQuickActions.
+  ///
+  /// In th, this message translates to:
+  /// **'จัดการเมนูด่วน'**
+  String get manageQuickActions;
+
+  /// No description provided for @manage.
+  ///
+  /// In th, this message translates to:
+  /// **'จัดการ'**
+  String get manage;
+
+  /// No description provided for @quickActionsDashboardPreview.
+  ///
+  /// In th, this message translates to:
+  /// **'ตัวอย่างบนหน้าหลัก'**
+  String get quickActionsDashboardPreview;
+
+  /// No description provided for @quickActionsShownCount.
+  ///
+  /// In th, this message translates to:
+  /// **'แสดง {count} เมนู'**
+  String quickActionsShownCount(int count);
+
+  /// No description provided for @quickActionsEmpty.
+  ///
+  /// In th, this message translates to:
+  /// **'ยังไม่มีเมนูที่แสดง — เปิดสวิตช์ด้านล่างเพื่อแสดง'**
+  String get quickActionsEmpty;
+
+  /// No description provided for @quickActionsAdd.
+  ///
+  /// In th, this message translates to:
+  /// **'เพิ่มเมนูด่วน'**
+  String get quickActionsAdd;
+
+  /// No description provided for @quickActionsAll.
+  ///
+  /// In th, this message translates to:
+  /// **'เมนูทั้งหมด'**
+  String get quickActionsAll;
+
+  /// No description provided for @quickActionsAllHint.
+  ///
+  /// In th, this message translates to:
+  /// **'เปิด/ปิด หรือลบ'**
+  String get quickActionsAllHint;
+
+  /// No description provided for @quickActionsRemoved.
+  ///
+  /// In th, this message translates to:
+  /// **'เมนูที่ลบแล้ว'**
+  String get quickActionsRemoved;
+
+  /// No description provided for @restore.
+  ///
+  /// In th, this message translates to:
+  /// **'กู้คืน'**
+  String get restore;
+
+  /// No description provided for @remove.
+  ///
+  /// In th, this message translates to:
+  /// **'ลบ'**
+  String get remove;
+
+  /// No description provided for @quickActionLeave.
+  ///
+  /// In th, this message translates to:
+  /// **'ขอลา'**
+  String get quickActionLeave;
+
+  /// No description provided for @quickActionOvertime.
+  ///
+  /// In th, this message translates to:
+  /// **'ขอ OT'**
+  String get quickActionOvertime;
+
+  /// No description provided for @quickActionShift.
+  ///
+  /// In th, this message translates to:
+  /// **'กะงาน'**
+  String get quickActionShift;
+
+  /// No description provided for @quickActionPayslip.
+  ///
+  /// In th, this message translates to:
+  /// **'สลิป'**
+  String get quickActionPayslip;
+
+  /// No description provided for @quickActionTeam.
+  ///
+  /// In th, this message translates to:
+  /// **'ปฏิทินทีม'**
+  String get quickActionTeam;
+
+  /// No description provided for @quickActionHolidays.
+  ///
+  /// In th, this message translates to:
+  /// **'วันหยุด'**
+  String get quickActionHolidays;
+
+  /// No description provided for @quickActionExpense.
+  ///
+  /// In th, this message translates to:
+  /// **'เบิกเงิน'**
+  String get quickActionExpense;
+
+  /// No description provided for @quickActionNews.
+  ///
+  /// In th, this message translates to:
+  /// **'ประกาศ'**
+  String get quickActionNews;
 
   /// No description provided for @requestLeave.
   ///

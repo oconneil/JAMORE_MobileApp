@@ -13,6 +13,7 @@ DemoData seedDemoData(DateTime now, {String localeCode = 'th'}) {
     rememberMe: true,
     hasLoggedIn: false,
     sessionActive: false,
+    quickActions: defaultQuickActionPreferences,
     leaveBalances: const [
       LeaveBalance(kind: LeaveKind.annual, used: 4, total: 12),
       LeaveBalance(kind: LeaveKind.sick, used: 2, total: 30),

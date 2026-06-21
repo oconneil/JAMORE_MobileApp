@@ -14,6 +14,7 @@ abstract final class DemoDataMapper {
     'overtimeRequests': data.overtimeRequests.map(_overtimeToJson).toList(),
     'teamApprovals': data.teamApprovals.map(_approvalToJson).toList(),
     'workLogs': data.workLogs.map(_workLogToJson).toList(),
+    'quickActions': data.quickActions.map(_quickActionToJson).toList(),
   };
 
   static DemoData fromJson(Map<String, Object?> json) => DemoData(
@@ -26,6 +27,20 @@ abstract final class DemoDataMapper {
     overtimeRequests: _list(json['overtimeRequests'], _overtimeFromJson),
     teamApprovals: _list(json['teamApprovals'], _approvalFromJson),
     workLogs: _list(json['workLogs'], _workLogFromJson),
+    quickActions: json['quickActions'] == null
+        ? defaultQuickActionPreferences
+        : _list(json['quickActions'], _quickActionFromJson),
+  );
+
+  static Map<String, Object?> _quickActionToJson(QuickActionPreference value) =>
+      {'id': value.id.name, 'visible': value.visible, 'deleted': value.deleted};
+
+  static QuickActionPreference _quickActionFromJson(
+    Map<String, Object?> json,
+  ) => QuickActionPreference(
+    id: QuickActionId.values.byName(json['id']! as String),
+    visible: json['visible'] as bool? ?? false,
+    deleted: json['deleted'] as bool? ?? false,
   );
 
   static Map<String, Object?> _attachmentToJson(AttachmentMeta value) => {

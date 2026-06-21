@@ -8,6 +8,7 @@ import 'dashboard_screen.dart';
 import 'leave_screen.dart';
 import 'overtime_screen.dart';
 import 'profile_screen.dart';
+import 'quick_actions.dart';
 import 'worktime_screen.dart';
 
 class AdaptiveShell extends StatelessWidget {
@@ -29,6 +30,9 @@ class AdaptiveShell extends StatelessWidget {
   }
 
   Widget _screen() {
+    if (location == '/dashboard/quick-actions') {
+      return const ManageQuickActionsScreen();
+    }
     if (location.startsWith('/leave')) return LeaveScreen(location: location);
     if (location.startsWith('/overtime')) {
       return OvertimeScreen(location: location);

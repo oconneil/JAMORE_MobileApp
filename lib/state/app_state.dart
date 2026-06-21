@@ -217,6 +217,51 @@ class AppState extends ChangeNotifier {
 
   WorkLog? get todayLog => _workspace.todayLog;
 
+  List<QuickActionPreference> get quickActions => data.quickActions;
+
+  Future<void> setQuickActionVisibility(
+    QuickActionId id, {
+    required bool visible,
+  }) async {
+    await _workspace.updateQuickActions(
+      quickActions
+          .map((item) => item.id == id ? item.copyWith(visible: visible) : item)
+          .toList(),
+    );
+    notifyListeners();
+  }
+
+  Future<void> removeQuickAction(QuickActionId id) async {
+    await _workspace.updateQuickActions(
+      quickActions
+          .map(
+            (item) => item.id == id
+                ? item.copyWith(visible: false, deleted: true)
+                : item,
+          )
+          .toList(),
+    );
+    notifyListeners();
+  }
+
+  Future<void> restoreQuickAction(QuickActionId id) async {
+    await _workspace.updateQuickActions(
+      quickActions
+          .map(
+            (item) => item.id == id
+                ? item.copyWith(visible: true, deleted: false)
+                : item,
+          )
+          .toList(),
+    );
+    notifyListeners();
+  }
+
+  Future<void> resetQuickActions() async {
+    await _workspace.updateQuickActions(defaultQuickActionPreferences);
+    notifyListeners();
+  }
+
   Future<void> recordTime() async {
     await _workspace.recordTime();
     notifyListeners();
